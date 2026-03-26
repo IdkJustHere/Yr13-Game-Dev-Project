@@ -1,694 +1,990 @@
-```html
+`````html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conveyor Kitchen - Game Design Document</title>
+    <title>Conveyor Kitchen - Godot 4 Implementation Plan</title>
     <style>
         :root {
-            --bg-color: #f5f5f5;
-            --text-color: #333;
-            --header-color: #2c3e50;
-            --accent-color: #e74c3c;
-            --code-bg: #ecf0f1;
-            --border-color: #bdc3c7;
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --accent-primary: #e94560;
+            --accent-secondary: #533483;
+            --text-primary: #eaeaea;
+            --text-secondary: #a0a0a0;
+            --code-bg: #0d1117;
+            --border-color: #2d3748;
         }
-        
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             line-height: 1.6;
-            color: var(--text-color);
-            background-color: var(--bg-color);
-            max-width: 900px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem;
         }
-        
+
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 3px solid var(--accent-primary);
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+        }
+
         h1 {
-            color: var(--header-color);
-            border-bottom: 3px solid var(--accent-color);
-            padding-bottom: 10px;
+            font-size: 3rem;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
-        
-        h2 {
-            color: var(--header-color);
-            margin-top: 40px;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 5px;
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            font-weight: 300;
         }
-        
-        h3 {
-            color: #34495e;
-            margin-top: 30px;
+
+        .toc {
+            background-color: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            border-left: 4px solid var(--accent-primary);
         }
-        
-        h4 {
-            color: #7f8c8d;
-            margin-top: 20px;
-            font-style: italic;
+
+        .toc h2 {
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
         }
-        
-        .warning {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 10px 15px;
-            margin: 15px 0;
-            border-radius: 0 4px 4px 0;
-        }
-        
-        .warning::before {
-            content: "⚠️ ";
-            font-weight: bold;
-        }
-        
-        code {
-            background-color: var(--code-bg);
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: "Courier New", Courier, monospace;
-            font-size: 0.9em;
-        }
-        
-        .scene-spec {
-            background-color: white;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            padding: 15px;
-            margin: 15px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        
-        .scene-name {
-            font-weight: bold;
-            color: var(--accent-color);
-            font-size: 1.1em;
-        }
-        
-        ul.checklist {
+
+        .toc ul {
             list-style: none;
-            padding-left: 0;
+            columns: 2;
         }
-        
-        ul.checklist li {
-            padding-left: 30px;
-            position: relative;
-            margin-bottom: 8px;
+
+        .toc li {
+            margin: 0.5rem 0;
         }
-        
-        ul.checklist li::before {
-            content: "☐";
-            position: absolute;
-            left: 0;
-            color: #7f8c8d;
-            font-size: 1.2em;
+
+        .toc a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.3s;
         }
-        
+
+        .toc a:hover {
+            color: var(--accent-primary);
+        }
+
+        .sprint {
+            margin: 3rem 0;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
         .sprint-header {
-            background-color: var(--header-color);
-            color: white;
-            padding: 15px;
-            margin: 30px -20px 20px -20px;
-            border-radius: 5px;
+            background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+            padding: 1.5rem 2rem;
+            cursor: pointer;
+            position: relative;
         }
-        
+
         .sprint-header h2 {
             margin: 0;
-            border: none;
-            color: white;
-            padding: 0;
+            font-size: 1.8rem;
         }
-        
-        .sprint-header p {
-            margin: 5px 0 0 0;
+
+        .sprint-header .weeks {
+            font-size: 0.9rem;
             opacity: 0.9;
+            font-weight: normal;
         }
-        
-        table {
+
+        .sprint-content {
+            padding: 2rem;
+            display: none;
+        }
+
+        .sprint-content.active {
+            display: block;
+        }
+
+        .week {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background-color: var(--bg-tertiary);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .week h3 {
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .task-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .task-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .task-list li:before {
+            content: "□";
+            position: absolute;
+            left: 0;
+            color: var(--accent-primary);
+            font-weight: bold;
+        }
+
+        .scene-spec {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .scene-spec h4 {
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .node-tree {
+            margin-left: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .node-tree .node {
+            margin: 0.2rem 0;
+        }
+
+        .node-tree .node-type {
+            color: #79c0ff;
+        }
+
+        .node-tree .node-name {
+            color: #d2a8ff;
+        }
+
+        .signals-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 1rem 0;
+            font-size: 0.9rem;
         }
-        
-        th, td {
+
+        .signals-table th, .signals-table td {
             border: 1px solid var(--border-color);
-            padding: 8px;
+            padding: 0.5rem;
             text-align: left;
         }
-        
-        th {
-            background-color: var(--code-bg);
-            font-weight: bold;
+
+        .signals-table th {
+            background-color: var(--bg-tertiary);
+            color: var(--accent-primary);
         }
-        
-        .git-reminder {
-            background-color: #d5f4e6;
-            border: 2px solid #27ae60;
-            border-radius: 5px;
-            padding: 15px;
-            margin: 30px 0;
-            text-align: center;
-            font-weight: bold;
+
+        .signals-table tr:nth-child(even) {
+            background-color: rgba(255,255,255,0.05);
         }
-        
+
+        .testing-phase {
+            background-color: rgba(233, 69, 96, 0.1);
+            border: 1px solid var(--accent-primary);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .testing-phase h4 {
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .checklist {
+            background-color: var(--bg-tertiary);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .checklist h4 {
+            color: #7ee787;
+            margin-bottom: 0.5rem;
+        }
+
+        .milestone {
+            background-color: rgba(126, 231, 135, 0.1);
+            border: 1px solid #7ee787;
+        }
+
+        .milestone h4 {
+            color: #7ee787;
+        }
+
         .trello-section {
-            background-color: #e8f4f8;
-            border-left: 4px solid #3498db;
-            padding: 15px;
-            margin: 15px 0;
+            background-color: var(--code-bg);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 1px dashed var(--text-secondary);
         }
-        
+
         .trello-section h4 {
-            margin-top: 0;
-            color: #2980b9;
+            color: #ffa657;
+            margin-bottom: 0.5rem;
         }
-        
+
+        .screenshot-item {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background-color: rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+
+        .ai-prompt {
+            font-style: italic;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-left: 1rem;
+            border-left: 2px solid var(--accent-secondary);
+            padding-left: 1rem;
+        }
+
+        .appendix {
+            margin: 2rem 0;
+            padding: 2rem;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+        }
+
+        .appendix h2 {
+            color: var(--accent-primary);
+            border-bottom: 2px solid var(--accent-primary);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            margin: 1rem 0;
+        }
+
+        code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #e6edf3;
+        }
+
+        .keyword { color: #ff7b72; }
+        .function { color: #d2a8ff; }
+        .string { color: #a5d6ff; }
+        .comment { color: #8b949e; font-style: italic; }
+        .number { color: #79c0ff; }
+
+        .github-reminder {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--accent-primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+            font-weight: bold;
+            animation: pulse 2s infinite;
+            z-index: 1000;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .warning {
+            background-color: rgba(255, 166, 87, 0.2);
+            border-left: 4px solid #ffa657;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 6px 6px 0;
+        }
+
         @media print {
-            body {
-                background-color: white;
-                font-size: 12pt;
-            }
-            .sprint-header {
-                margin: 20px 0;
-                page-break-after: avoid;
-            }
-            .scene-spec {
-                break-inside: avoid;
-            }
+            .sprint-content { display: block !important; }
+            .github-reminder { display: none; }
+            body { background: white; color: black; }
+            .sprint { break-inside: avoid; }
+        }
+
+        @media (max-width: 768px) {
+            .toc ul { columns: 1; }
+            h1 { font-size: 2rem; }
+            .container { padding: 1rem; }
         }
     </style>
 </head>
 <body>
 
-<h1>Game Design Document: Conveyor Kitchen</h1>
-<p><strong>Platform:</strong> PC (Mouse & Keyboard) | <strong>Engine:</strong> Godot 4.x | <strong>Team:</strong> Solo Developer</p>
-
-<h2>Game Overview</h2>
-<p><strong>Conveyor Kitchen</strong> is a spatial logistics puzzle game viewed from an isometric 3D perspective. The player designs efficient conveyor networks on a strict grid to transport food items—meat, fruit, and spices—from their source hoppers to designated preparation stations before the timer runs out.</p>
-
-<p>The core tension arises from limited building resources and restricted floor space; every conveyor tile placed must be justified, as the player is graded not only on completing deliveries but on architectural elegance. The game rejects complex physics simulations in favor of discrete, deterministic movement: items snap from cell to cell in half-second intervals, transforming the experience into a hybrid of chess and factory planning.</p>
-
-<h2>Core Mechanics</h2>
-
-<h3>Grid System & Placement</h3>
-<p>The game operates on a 1m × 1m grid system. The player surveys the layout from an isometric camera, noting the positions of colored Source nodes (which spawn items) and their matching Sink stations (which consume them). Using a limited inventory of conveyor tiles—typically ranging from twelve to twenty pieces depending on the challenge—the player must bridge the gap between them.</p>
-
-<p>Placement is immediate and tactile. A ghosted grid overlay follows the mouse cursor, snapping to the nearest meter-square cell. Clicking deposits a straight conveyor section or a corner piece, which can be rotated in ninety-degree increments before finalizing.</p>
-
-<h3>Discrete Flow System</h3>
-<p>Items do not use physics simulation. Instead, they exist as discrete agents on the grid, advancing one cell every 0.5 seconds (the "tick"). This tick-based approach ensures deterministic, predictable movement essential for the puzzle nature of the game. Each tick, the system checks the next cell in the item's path: if it's empty, the item moves; if occupied, a Jam occurs.</p>
-
-<h3>Jam States & Crisis Management</h3>
-<p>If two items attempt to occupy the same cell simultaneously, the system enters a <strong>Jam State</strong>. The conveyor line halts, a visual indicator appears, and the player must manually intervene by clicking the jam location to clear it (incurring a 5-point penalty). Accumulating three simultaneous jams triggers a <strong>Kitchen Shutdown</strong>—immediate level failure.</p>
-
-<h3>Scoring & Medals</h3>
-<p>Success is measured across three tiers:</p>
-<ul>
-    <li><strong>Bronze:</strong> Deliver the required quota before timeout</li>
-    <li><strong>Silver:</strong> Complete with at least 30 seconds remaining</li>
-    <li><strong>Gold:</strong> Complete using fewer than 50% of available tiles</li>
-</ul>
-
-<h2>Implementation Plan</h2>
-<p class="warning">This schedule assumes approximately 4 hours per week of focused development time.</p>
-
-<div class="sprint-header">
-    <h2>Sprint 1: Foundation & Core Loop</h2>
-    <p>Weeks 1–4 | Goal: Establish grid system, basic placement, discrete item movement, and camera controls using primitive meshes</p>
+<div class="github-reminder">
+    💾 Commit & Push to GitHub!
 </div>
 
-<h3>Scene Specifications</h3>
+<div class="container">
+    <header>
+        <h1>Conveyor Kitchen</h1>
+        <div class="subtitle">Godot 4 Implementation Plan | 16-Week Development Schedule</div>
+    </header>
 
-<div class="scene-spec">
-    <span class="scene-name">game_manager.tscn</span> (Node — Autoload)<br>
-    <em>Handles global state and level persistence.</em><br><br>
+    <div class="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+            <li><a href="#sprint1">Sprint 1: Core Grid & Conveyor Logic</a></li>
+            <li><a href="#sprint2">Sprint 2: Items, Stations & Economy</a></li>
+            <li><a href="#sprint3">Sprint 3: Visual Polish & Assets</a></li>
+            <li><a href="#sprint4">Sprint 4: Audio, Menus & Shipping</a></li>
+            <li><a href="#appendix-a">Appendix A: Grid Coordinate System</a></li>
+            <li><a href="#appendix-b">Appendix B: Conveyor Logic</a></li>
+            <li><a href="#appendix-c">Appendix C: Item Movement</a></li>
+            <li><a href="#appendix-d">Appendix D: Direction Routing</a></li>
+        </ul>
+    </div>
+
+    <!-- SPRINT 1 -->
+    <div class="sprint" id="sprint1">
+        <div class="sprint-header" onclick="toggleSprint(1)">
+            <h2>Sprint 1: Core Grid & Conveyor Logic <span class="weeks">(Weeks 1-4)</span></h2>
+            <button class="toggle-btn">▼</button>
+        </div>
+        <div class="sprint-content active" id="content-1">
+            
+            <div class="week">
+                <h3>Week 1: Project Setup & Grid System</h3>
+                <ul class="task-list">
+                    <li>Create Godot 4.2+ project with Forward+ renderer</li>
+                    <li>Set up isometric camera (45° rotation, 35.264° pitch)</li>
+                    <li>Implement GridManager singleton (16x12 grid, 64px cells)</li>
+                    <li>Create placeholder tile meshes (1x1 quad)</li>
+                </ul>
+
+                <div class="scene-spec">
+                    <h4>Scene: main.tscn</h4>
+                    <div class="node-tree">
+                        <div class="node">Node3D <span class="node-name">Main</span></div>
+                        <div class="node" style="margin-left: 20px;">Camera3D <span class="node-name">IsometricCamera</span></div>
+                        <div class="node" style="margin-left: 20px;">DirectionalLight3D <span class="node-name">Sun</span></div>
+                        <div class="node" style="margin-left: 20px;">Node3D <span class="node-name">GridContainer</span></div>
+                        <div class="node" style="margin-left: 40px;">MeshInstance3D <span class="node-name">Tile_[x]_[y]</span> (generated)</div>
+                    </div>
+                </div>
+
+                <div class="scene-spec">
+                    <h4>Scene: grid_manager.gd (Singleton)</h4>
+                    <pre><code><span class="keyword">extends</span> Node
+<span class="keyword">class_name</span> GridManager
+
+<span class="keyword">const</span> GRID_SIZE := Vector2i(<span class="number">16</span>, <span class="number">12</span>)
+<span class="keyword">const</span> CELL_SIZE := <span class="number">1.0</span>  <span class="comment"># World units</span>
+
+<span class="keyword">var</span> grid: Dictionary = {}  <span class="comment"># Vector2i -> TileData</span>
+
+<span class="keyword">func</span> <span class="function">world_to_grid</span>(world_pos: Vector3) -> Vector2i:
+    <span class="comment"># Isometric projection math</span>
+    <span class="keyword">pass</span>
+
+<span class="keyword">signal</span> grid_updated(cell: Vector2i)</code></pre>
+                </div>
+            </div>
+
+            <div class="week">
+                <h3>Week 2: Conveyor Placement & Direction</h3>
+                <ul class="task-list">
+                    <li>Implement TileMapLayer for logical grid tracking</li>
+                    <li>Create conveyor placement system (raycast from mouse)</li>
+                    <li>Add conveyor direction cycling (click to rotate)</li>
+                    <li>Build Conveyor resource class (type, direction, inputs/outputs)</li>
+                </ul>
+
+                <div class="scene-spec">
+                    <h4>Scene: conveyor.tscn</h4>
+                    <div class="node-tree">
+                        <div class="node">StaticBody3D <span class="node-name">Conveyor</span></div>
+                        <div class="node" style="margin-left: 20px;">MeshInstance3D <span class="node-name">BaseMesh</span></div>
+                        <div class="node" style="margin-left: 20px;">MeshInstance3D <span class="node-name">ArrowIndicator</span></div>
+                        <div class="node" style="margin-left: 20px;">Area3D <span class="node-name">InteractionZone</span></div>
+                        <div class="node" style="margin-left: 40px;">CollisionShape3D</div>
+                    </div>
+                    <table class="signals-table">
+                        <tr><th>Signal</th><th>Emitter</th><th>Receiver</th></tr>
+                        <tr><td>conveyor_placed</td><td>BuildManager</td><td>GridManager.register_tile()</td></tr>
+                        <tr><td>direction_changed</td><td>Conveyor</td><td>GridManager.update_connections()</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="week">
+                <h3>Week 3: Conveyor Networking & Validation</h3>
+                <ul class="task-list">
+                    <li>Implement connection detection (input/output matching)</li>
+                    <li>Create network graph for connected conveyor chains</li>
+                    <li>Add validation: prevent circular dependencies</li>
+                    <li>Visual feedback: highlight valid/invalid placement</li>
+                </ul>
+
+                <div class="scene-spec">
+                    <h4>Scene: network_manager.gd</h4>
+                    <pre><code><span class="keyword">func</span> <span class="function">build_network_graph</span>(root: Vector2i) -> Dictionary:
+    <span class="comment"># BFS traversal of conveyor connections</span>
+    <span class="keyword">var</span> visited = {}
+    <span class="keyword">var</span> queue = [root]
     
-    <strong>Children:</strong> None (logic-only node)<br><br>
+    <span class="keyword">while</span> queue.size() > <span class="number">0</span>:
+        <span class="keyword">var</span> current = queue.pop_front()
+        <span class="comment"># Check connections...</span></code></pre>
+                </div>
+            </div>
+
+            <div class="week">
+                <h3>Week 4: Tick System & Movement Logic</h3>
+                <ul class="task-list">
+                    <li>Implement global TickManager (0.5s intervals)</li>
+                    <li>Create ItemContainer class for tile inventory</li>
+                    <li>Handle conveyor-to-conveyor item transfer</li>
+                    <li>Add basic splitter/router logic</li>
+                </ul>
+
+                <div class="testing-phase">
+                    <h4>Testing Phase</h4>
+                    <ul>
+                        <li>Place conveyors in straight line, verify items move end-to-end</li>
+                        <li>Test corner pieces: items should turn correctly</li>
+                        <li>Verify circular placement prevention works</li>
+                        <li>Stress test: 50+ conveyors, check for frame drops</li>
+                    </ul>
+                </div>
+
+                <div class="checklist">
+                    <h4>Sprint Checklist</h4>
+                    <ul class="task-list">
+                        <li>Isometric camera controls (pan/zoom)</li>
+                        <li>Grid coordinate conversion accurate</li>
+                        <li>Conveyor placement with rotation</li>
+                        <li>Basic item movement on tick</li>
+                    </ul>
+                </div>
+
+                <div class="checklist milestone">
+                    <h4>Milestone Checklist</h4>
+                    <ul class="task-list">
+                        <li>Player can place and rotate conveyor belts</li>
+                        <li>Items move deterministically along conveyor chains</li>
+                        <li>Grid system validates connections</li>
+                    </ul>
+                </div>
+
+                <div class="trello-section">
+                    <h4>Trello Documentation</h4>
+                    <div class="screenshot-item">
+                        <strong>Screenshot:</strong> Isometric view of 5x5 conveyor test layout
+                        <div class="ai-prompt">"Screenshot of Conveyor Kitchen development showing isometric grid with basic conveyor belt layout. Gray placeholder tiles with blue arrow indicators showing direction flow. Simple cube representing item moving along path. Demonstrates week 4 milestone of core movement logic."</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <strong>Screenshot:</strong> Grid validation error (circular dependency)
+                        <div class="ai-prompt">"Development screenshot showing grid validation system. Red highlight on conveyor tiles attempting to form a loop. UI text showing 'Invalid: Circular dependency detected'. Demonstrates validation logic implementation."</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPRINT 2 -->
+    <div class="sprint" id="sprint2">
+        <div class="sprint-header" onclick="toggleSprint(2)">
+            <h2>Sprint 2: Items, Stations & Economy <span class="weeks">(Weeks 5-8)</span></h2>
+            <button class="toggle-btn">▼</button>
+        </div>
+        <div class="sprint-content" id="content-2">
+            
+            <div class="week">
+                <h3>Week 5: Item System & Hopper</h3>
+                <ul class="task-list">
+                    <li>Create Item resource (type: meat/fruit/spice, state: raw/processed)</li>
+                    <li>Implement Hopper station (infinite source)</li>
+                    <li>Add item spawning on tick if output clear</li>
+                    <li>Create floating label for item type (placeholder)</li>
+                </ul>
+
+                <div class="scene-spec">
+                    <h4>Scene: item.tscn</h4>
+                    <div class="node-tree">
+                        <div class="node">Node3D <span class="node-name">Item</span></div>
+                        <div class="node" style="margin-left: 20px;">MeshInstance3D <span class="node-name">Mesh</span> (placeholder cube)</div>
+                        <div class="node" style="margin-left: 20px;">Label3D <span class="node-name">TypeLabel</span></div>
+                        <div class="node" style="margin-left: 20px;">AnimationPlayer <span class="node-name">FloatAnim</span></div>
+                    </div>
+                    <table class="signals-table">
+                        <tr><th>Signal</th><th>Emitter</th><th>Receiver</th></tr>
+                        <tr><td>item_moved</td><td>Item</td><td>GridManager.update_cell()</td></tr>
+                        <tr><td>item_spawned</td><td>Hopper</td><td>TickManager.schedule_move()</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="week">
+                <h3>Week 6: Preparation Stations</h3>
+                <ul class="task-list">
+                    <li>Build Station base class (process_time, accepted_types)</li>
+                    <li>Implement CuttingStation (meat → sliced)</li>
+                    <li>Implement MixingStation (spice + fruit → compote)</li>
+                    <li>Add processing progress bar (UI placeholder)</li>
+                </ul>
+
+                <div class="scene-spec">
+                    <h4>Scene: station.tscn</h4>
+                    <pre><code><span class="keyword">class_name</span> Station <span class="keyword">extends</span> StaticBody3D
+
+<span class="keyword">@export</span> <span class="keyword">var</span> process_time: <span class="number">int</span> = <span class="number">3</span>  <span class="comment"># Ticks</span>
+<span class="keyword">@export</span> <span class="keyword">var</span> accepted_types: Array[Item.Type]
+<span class="keyword">@export</span> <span class="keyword">var</span> output_type: Item.Type
+
+<span class="keyword">var</span> current_item: Item = <span class="keyword">null</span>
+<span class="keyword">var</span> progress: <span class="number">int</span> = <span class="number">0</span>
+
+<span class="keyword">signal</span> processing_complete(output: Item)</code></pre>
+                </div>
+            </div>
+
+            <div class="week">
+                <h3>Week 7: Delivery & Scoring</h3>
+                <ul class="task-list">
+                    <li>Create DeliveryZone (accepts specific item combinations)</li>
+                    <li>Implement Order class (requirements, time_limit)</li>
+                    <li>Add ScoreManager (efficiency rating, tile economy)</li>
+                    <li>Create basic UI: score display, order tracker</li>
+                </ul>
+
+                <div class="scene-spec">
+                    <h4>Scene: ui_canvas.tscn (CanvasLayer)</h4>
+                    <div class="node-tree">
+                        <div class="node">CanvasLayer <span class="node-name">UI</span></div>
+                        <div class="node" style="margin-left: 20px;">Control <span class="node-name">MainUI</span></div>
+                        <div class="node" style="margin-left: 40px;">Label <span class="node-name">ScoreLabel</span></div>
+                        <div class="node" style="margin-left: 40px;">VBoxContainer <span class="node-name">OrderList</span></div>
+                        <div class="node" style="margin-left: 40px;">ProgressBar <span class="node-name">BudgetBar</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="week">
+                <h3>Week 8: Economy & Constraints</h3>
+                <ul class="task-list">
+                    <li>Implement tile budget system (limited conveyor count)</li>
+                    <li>Add currency/upgrade system (optional)</li>
+                    <li>Create level completion conditions</li>
+                    <li>Build LevelManager (load/unload levels)</li>
+                </ul>
+
+                <div class="testing-phase">
+                    <h4>Testing Phase</h4>
+                    <ul>
+                        <li>Verify items transform correctly at stations</li>
+                        <li>Test order completion: correct items → score increase</li>
+                        <li>Test budget constraint: cannot exceed tile limit</li>
+                        <li>Verify failed orders (timeout) trigger game state</li>
+                    </ul>
+                </div>
+
+                <div class="checklist">
+                    <h4>Sprint Checklist</h4>
+                    <ul class="task-list">
+                        <li>Three item types spawn from hoppers</li>
+                        <li>Stations process items (visual feedback)</li>
+                        <li>Delivery zones accept correct items</li>
+                        <li>Score calculates based on efficiency</li>
+                        <li>Tile budget enforced</li>
+                    </ul>
+                </div>
+
+                <div class="checklist milestone">
+                    <h4>Milestone Checklist</h4>
+                    <ul class="task-list">
+                        <li>Complete production chain: Hopper → Conveyor → Station → Delivery</li>
+                        <li>Score system tracks efficiency metrics</li>
+                        <li>Level can be won/lost based on objectives</li>
+                    </ul>
+                </div>
+
+                <div class="trello-section">
+                    <h4>Trello Documentation</h4>
+                    <div class="screenshot-item">
+                        <strong>Screenshot:</strong> Full production line with UI overlay
+                        <div class="ai-prompt">"Gameplay screenshot showing complete logistics chain. Hopper spawning red cubes (meat), moving along conveyor line to station with progress bar, then to delivery zone. UI showing score 150/500, tile budget 12/20 used, active order 'Deliver 2x Processed Meat'. Placeholder graybox art style."</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPRINT 3 -->
+    <div class="sprint" id="sprint3">
+        <div class="sprint-header" onclick="toggleSprint(3)">
+            <h2>Sprint 3: Visual Polish & Assets <span class="weeks">(Weeks 9-12)</span></h2>
+            <button class="toggle-btn">▼</button>
+        </div>
+        <div class="sprint-content" id="content-3">
+            
+            <div class="week">
+                <h3>Week 9: 3D Asset Pipeline</h3>
+                <ul class="task-list">
+                    <li>Set up Blender → Godot workflow (glTF export)</li>
+                    <li>Model conveyor belt segments (straight, corner, splitter)</li>
+                    <li>Create animated belt texture (UV scroll shader)</li>
+                    <li>Implement item models (meat chunk, fruit basket, spice jar)</li>
+                </ul>
+            </div>
+
+            <div class="week">
+                <h3>Week 10: Environment & Stations</h3>
+                <ul class="task-list">
+                    <li>Model kitchen environment (floor tiles, walls, lighting)</li>
+                    <li>Create station models (cutting board, mixing bowl)</li>
+                    <li>Add particle effects (steam, chopping sparks)</li>
+                    <li>Implement item visualization states (raw vs processed)</li>
+                </ul>
+
+                <div class="scene-spec">
+                    <h4>Shader: conveyor_belt.gdshader</h4>
+                    <pre><code><span class="keyword">shader_type</span> spatial;
+
+<span class="keyword">uniform</span> <span class="keyword">sampler2D</span> belt_texture;
+<span class="keyword">uniform</span> <span class="keyword">float</span> speed = <span class="number">0.5</span>;
+<span class="keyword">uniform</span> <span class="keyword">vec2</span> direction = <span class="keyword">vec2</span>(<span class="number">1.0</span>, <span class="number">0.0</span>);
+
+<span class="keyword">void</span> <span class="function">fragment</span>() {
+    <span class="keyword">vec2</span> uv = UV + (direction * TIME * speed);
+    ALBEDO = texture(belt_texture, uv).rgb;
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="week">
+                <h3>Week 11: UI Design</h3>
+                <ul class="task-list">
+                    <li>Design conveyor palette UI (drag and drop or click)</li>
+                    <li>Create order ticket visuals (paper texture, stamps)</li>
+                    <li>Implement build mode indicators (ghost previews)</li>
+                    <li>Add screen-space effects (Vignette, slight chromatic aberration)</li>
+                </ul>
+            </div>
+
+            <div class="week">
+                <h3>Week 12: Lighting & Atmosphere</h3>
+                <ul class="task-list">
+                    <li>Set up SDFGI or baked lighting for kitchen</li>
+                    <li>Implement time-of-day or mood lighting system</li>
+                    <li>Add shadow optimization (shadow distance, cascade splits)</li>
+                    <li>Create post-processing profile (subtle bloom, contrast)</li>
+                </ul>
+
+                <div class="testing-phase">
+                    <h4>Testing Phase</h4>
+                    <ul>
+                        <li>Verify conveyor animations sync with tick rate</li>
+                        <li>Check item visibility against background (readability)</li>
+                        <li>Test UI scaling at 1080p and 4K</li>
+                        <li>Profile GPU: ensure 60fps with full kitchen</li>
+                    </ul>
+                </div>
+
+                <div class="checklist">
+                    <h4>Sprint Checklist</h4>
+                    <ul class="task-list">
+                        <li>All placeholder cubes replaced with models</li>
+                        <li>Conveyor belts animate smoothly</li>
+                        <li>UI theme consistent and readable</li>
+                        <li>Lighting sets clear mood (clean kitchen aesthetic)</li>
+                    </ul>
+                </div>
+
+                <div class="checklist milestone">
+                    <h4>Milestone Checklist</h4>
+                    <ul class="task-list">
+                        <li>Game visually represents final art direction</li>
+                        <li>All interactables have hover/click feedback</li>
+                        <li>Visual clarity: can distinguish items at glance</li>
+                    </ul>
+                </div>
+
+                <div class="trello-section">
+                    <h4>Trello Documentation</h4>
+                    <div class="screenshot-item">
+                        <strong>Screenshot:</strong> Final art style comparison (before/after)
+                        <div class="ai-prompt">"Side-by-side comparison of Conveyor Kitchen development. Left: graybox placeholder art from sprint 2. Right: final stylized kitchen aesthetic with warm lighting, detailed conveyor models, and food items. Shows visual transformation and art pipeline completion."</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPRINT 4 -->
+    <div class="sprint" id="sprint4">
+        <div class="sprint-header" onclick="toggleSprint(4)">
+            <h2>Sprint 4: Audio, Menus & Shipping Prep <span class="weeks">(Weeks 13-16)</span></h2>
+            <button class="toggle-btn">▼</button>
+        </div>
+        <div class="sprint-content" id="content-4">
+            
+            <div class="week">
+                <h3>Week 13: Audio Implementation</h3>
+                <ul class="task-list">
+                    <li>Create AudioManager singleton (bus layout: SFX, Music, UI)</li>
+                    <li>Implement conveyor sounds (mechanical ticks, loops)</li>
+                    <li>Add station processing sounds (chopping, mixing)</li>
+                    <li>Create UI feedback sounds (placement, error, completion)</li>
+                </ul>
+
+                <div class="scene-spec">
+                    <h4>Scene: audio_manager.gd</h4>
+                    <pre><code><span class="keyword">extends</span> Node
+
+<span class="keyword">@onready</span> <span class="keyword">var</span> sfx_bus = AudioServer.get_bus_index(<span class="string">"SFX"</span>)
+<span class="keyword">@onready</span> <span class="keyword">var</span> music_bus = AudioServer.get_bus_index(<span class="string">"Music"</span>)
+
+<span class="keyword">func</span> <span class="function">play_conveyor_tick</span>(pitch: <span class="keyword">float</span> = <span class="number">1.0</span>):
+    <span class="keyword">var</span> player = AudioStreamPlayer3D.new()
+    player.stream = preload(<span class="string">"res://audio/conveyor_tick.wav"</span>)
+    player.pitch_scale = pitch
+    add_child(player)
+    player.play()
+    await player.finished
+    player.queue_free()</code></pre>
+                </div>
+            </div>
+
+            <div class="week">
+                <h3>Week 14: Menu Systems</h3>
+                <ul class="task-list">
+                    <li>Build Main Menu (Play, Settings, Quit)</li>
+                    <li>Create Level Select screen (star ratings per level)</li>
+                    <li>Implement Pause Menu (Resume, Restart, Exit)</li>
+                    <li>Add Settings (Volume sliders, fullscreen toggle)</li>
+                </ul>
+
+                <div class="scene-spec">
+                    <h4>Scene: main_menu.tscn</h4>
+                    <div class="node-tree">
+                        <div class="node">Control <span class="node-name">MainMenu</span></div>
+                        <div class="node" style="margin-left: 20px;">ColorRect <span class="node-name">Background</span></div>
+                        <div class="node" style="margin-left: 20px;">VBoxContainer <span class="node-name">ButtonContainer</span></div>
+                        <div class="node" style="margin-left: 40px;">Button <span class="node-name">PlayButton</span></div>
+                        <div class="node" style="margin-left: 40px;">Button <span class="node-name">SettingsButton</span></div>
+                        <div class="node" style="margin-left: 40px;">Button <span class="node-name">QuitButton</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="week">
+                <h3>Week 15: Tutorial & Level Design</h3>
+                <ul class="task-list">
+                    <li>Implement TutorialSystem (highlighting, text prompts)</li>
+                    <li>Design 5 tutorial levels (mechanic introduction)</li>
+                    <li>Create 5 challenge levels (efficiency puzzles)</li>
+                    <li>Add LevelData resource (grid layout, objectives, constraints)</li>
+                </ul>
+            </div>
+
+            <div class="week">
+                <h3>Week 16: Polish & Export</h3>
+                <ul class="task-list">
+                    <li>Bug fixing: edge cases in conveyor logic</li>
+                    <li>Performance optimization (culling, LOD if needed)</li>
+                    <li>Create export presets (Windows, Web, Linux)</li>
+                    <li>Build release candidate and playtest full game</li>
+                </ul>
+
+                <div class="testing-phase">
+                    <h4>Testing Phase</h4>
+                    <ul>
+                        <li>Full playthrough: 30 minutes continuous play</li>
+                        <li>Memory leak check: monitor RAM usage</li>
+                        <li>Export test: verify all assets included</li>
+                        <li>Controller support test (if applicable)</li>
+                    </ul>
+                </div>
+
+                <div class="checklist">
+                    <h4>Sprint Checklist</h4>
+                    <ul class="task-list">
+                        <li>Audio mixing balanced (SFX not drowning music)</li>
+                        <li>All menus navigable via mouse and keyboard</li>
+                        <li>10 levels complete and winnable</li>
+                        <li>No console errors in release build</li>
+                    </ul>
+                </div>
+
+                <div class="checklist milestone">
+                    <h4>Milestone Checklist</h4>
+                    <ul class="task-list">
+                        <li>Game boots to main menu without errors</li>
+                        <li>All 10 levels playable from start to finish</li>
+                        <li>Export builds run on target platforms</li>
+                        <li>Memory usage stable (no leaks)</li>
+                    </ul>
+                </div>
+
+                <div class="trello-section">
+                    <h4>Trello Documentation</h4>
+                    <div class="screenshot-item">
+                        <strong>Screenshot:</strong> Main menu with final styling
+                        <div class="ai-prompt">"Final game screenshot showing polished main menu. Warm kitchen background with depth of field. Clean UI with 'Conveyor Kitchen' logo, Play/Settings/Quit buttons. Professional indie game aesthetic, ready for release."</div>
+                    </div>
+                    <div class="screenshot-item">
+                        <strong>Screenshot:</strong> Level completion screen with efficiency rating
+                        <div class="ai-prompt">"Screenshot of level completion state. Three-star rating system showing 2/3 stars earned. Statistics: 'Tiles Used: 15/20', 'Time: 45s', 'Efficiency: 85%'. Share button and next level option visible. Celebratory particle effects."</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- APPENDICES -->
+    <div class="appendix" id="appendix-a">
+        <h2>Appendix A: Grid Coordinate System</h2>
+        <pre><code><span class="comment"># Isometric Grid Conversion Reference</span>
+<span class="keyword">func</span> <span class="function">world_to_grid</span>(world_pos: Vector3) -> Vector2i:
+    <span class="keyword">var</span> x = world_pos.x / CELL_SIZE
+    <span class="keyword">var</span> z = world_pos.z / CELL_SIZE
+    <span class="keyword">return</span> Vector2i(<span class="keyword">round</span>(x), <span class="keyword">round</span>(z))
+
+<span class="keyword">func</span> <span class="function">grid_to_world</span>(grid_pos: Vector2i) -> Vector3:
+    <span class="keyword">return</span> Vector3(
+        grid_pos.x * CELL_SIZE, 
+        <span class="number">0</span>, 
+        grid_pos.y * CELL_SIZE
+    )</code></pre>
+    </div>
+
+    <div class="appendix" id="appendix-b">
+        <h2>Appendix B: Conveyor Logic</h2>
+        <pre><code><span class="keyword">class_name</span> ConveyorTile <span class="keyword">extends</span> Node3D
+
+<span class="keyword">enum</span> Type { STRAIGHT, CORNER_LEFT, CORNER_RIGHT, SPLITTER }
+<span class="keyword">enum</span> Direction { NORTH, EAST, SOUTH, WEST }
+
+<span class="keyword">@export</span> <span class="keyword">var</span> type: Type = Type.STRAIGHT
+<span class="keyword">@export</span> <span class="keyword">var</span> facing: Direction = Direction.NORTH
+
+<span class="keyword">func</span> <span class="function">get_input_directions</span>() -> Array[Direction]:
+    <span class="keyword">match</span> type:
+        Type.STRAIGHT: <span class="keyword">return</span> [(facing + <span class="number">2</span>) % <span class="number">4</span>]  <span class="comment"># Opposite</span>
+        Type.CORNER_LEFT: <span class="keyword">return</span> [(facing + <span class="number">1</span>) % <span class="number">4</span>]  <span class="comment"># Perpendicular</span>
+        <span class="keyword">_</span>: <span class="keyword">return</span> []
+
+<span class="keyword">func</span> <span class="function">get_output_direction</span>() -> Direction:
+    <span class="keyword">return</span> facing</code></pre>
+    </div>
+
+    <div class="appendix" id="appendix-c">
+        <h2>Appendix C: Item Movement</h2>
+        <pre><code><span class="comment"># In TickManager.gd - Handles discrete movement</span>
+<span class="keyword">func</span> <span class="function">process_tick</span>():
+    <span class="keyword">var</span> moves = []  <span class="comment"># Array of {item, from, to}</span>
     
-    <strong>Signals:</strong>
-    <ul>
-        <li><code>inventory_changed(count: int)</code> → Emitted to <code>ui_hud.tscn::_on_inventory_changed</code></li>
-        <li><code>game_state_changed(state: GameState)</code> → Emitted to <code>level.tscn::_on_state_changed</code> (Planning vs. Rush Hour)</li>
-    </ul>
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">level.tscn</span> (Node3D — Root gameplay scene)<br>
-    <em>Container for the playable space.</em><br><br>
+    <span class="comment"># Phase 1: Calculate all intended moves</span>
+    <span class="keyword">for</span> cell <span class="keyword">in</span> GridManager.get_occupied_cells():
+        <span class="keyword">var</span> tile = GridManager.get_tile(cell)
+        <span class="keyword">if</span> tile.has_item() <span class="keyword">and</span> tile.can_output():
+            <span class="keyword">var</span> next_cell = cell + dir_to_vector(tile.get_output_direction())
+            <span class="keyword">if</span> GridManager.can_accept_item(next_cell):
+                moves.append({item: tile.item, from: cell, to: next_cell})
     
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>Camera3D:</strong> Orthogonal projection, positioned at isometric angle (45° Y, 35° X), script handles 90° snap rotation on mouse wheel</li>
-        <li><strong>DirectionalLight3D:</strong> Shadows enabled (placeholder visuals need depth)</li>
-        <li><strong>GridManager</strong> (Node3D): Owns the 2D array logic</li>
-        <li><strong>TileGhost</strong> (MeshInstance3D): Semi-transparent white cube, follows mouse cursor via raycast</li>
-        <li><strong>CanvasLayer</strong> (UI container): Instances <code>ui_hud.tscn</code></li>
-    </ul>
+    <span class="comment"># Phase 2: Execute moves (prevent swap deadlock)</span>
+    <span class="keyword">for</span> move <span class="keyword">in</span> moves:
+        execute_move(move)</code></pre>
+    </div>
+
+    <div class="appendix" id="appendix-d">
+        <h2>Appendix D: Direction Routing</h2>
+        <pre><code><span class="comment"># Determines next cell based on tile type and current direction</span>
+<span class="keyword">func</span> <span class="function">get_exit_direction</span>(tile_type: String, entry_dir: Vector2i) -> Vector2i:
+    <span class="keyword">match</span> tile_type:
+        <span class="string">"straight"</span>:
+            <span class="keyword">return</span> entry_dir
+        <span class="string">"corner_left"</span>:
+            <span class="keyword">return</span> entry_dir.rotated(-PI/<span class="number">2</span>) <span class="comment"># 90 deg left</span>
+        <span class="string">"corner_right"</span>:
+            <span class="keyword">return</span> entry_dir.rotated(PI/<span class="number">2</span>)  <span class="comment"># 90 deg right</span>
+    <span class="keyword">return</span> Vector2i.ZERO</code></pre>
+    </div>
+
+    <div class="warning" style="margin-top: 3rem; text-align: center;">
+        <strong>💾 Development Reminder:</strong> Commit and push to GitHub after every working session!
+    </div>
+
 </div>
 
-<div class="scene-spec">
-    <span class="scene-name">grid_manager.tscn</span> (Node3D)<br>
-    <em>The brain of the logistics system.</em><br><br>
-    
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>TickTimer</strong> (Timer): Wait time 0.5s, autostart false during Planning phase</li>
-    </ul>
-    
-    <strong>Signals:</strong>
-    <ul>
-        <li><code>tick</code> → Connected to all active Item nodes' <code>_on_tick_move</code> method</li>
-        <li><code>tile_placed(grid_pos: Vector2i, type: int)</code> → Emitted to <code>level.tscn</code> for visual feedback</li>
-        <li><code>jam_detected(at_pos: Vector2i)</code> → Future connection for Sprint 2</li>
-    </ul>
-</div>
+<script>
+    function toggleSprint(num) {
+        const content = document.getElementById('content-' + num);
+        const btn = document.querySelector('#sprint' + num + ' .toggle-btn');
+        
+        if (content.classList.contains('active')) {
+            content.classList.remove('active');
+            btn.textContent = '▶';
+        } else {
+            content.classList.add('active');
+            btn.textContent = '▼';
+        }
+    }
 
-<div class="scene-spec">
-    <span class="scene-name">tile_straight.tscn</span> (Node3D)<br>
-    <em>Placeholder straight conveyor.</em><br><br>
-    
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>MeshInstance3D:</strong> BoxMesh (1×1×0.2m), grey material</li>
-        <li><strong>StaticBody3D:</strong> Collision for raycast detection</li>
-    </ul>
-    <strong>Script:</strong> Stores <code>direction: Vector2i</code> (e.g., (1,0) for East)
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">item_meat.tscn</span> (Node3D)<br>
-    <em>Prototype for all items (recolored later).</em><br><br>
-    
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>MeshInstance3D:</strong> BoxMesh (0.4×0.4×0.4m), red material</li>
-    </ul>
-    <strong>Script:</strong> Handles position interpolation between grid cells; stores <code>current_grid_pos</code> and <code>next_grid_pos</code>
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">ui_hud.tscn</span> (CanvasLayer)<br>
-    <em>Minimal interface for debugging.</em><br><br>
-    
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>TileCountLabel</strong> (Label): Displays remaining inventory</li>
-        <li><strong>StateLabel</strong> (Label): Shows "PLANNING" or "RUSH HOUR"</li>
-    </ul>
-</div>
-
-<h3>Key Tasks</h3>
-<ul>
-    <li>Configure Git repository with <code>.gitignore</code> for Godot</li>
-    <li>Implement raycast from Camera3D to horizontal plane (Y=0) to calculate grid coordinates</li>
-    <li>Create 10×10 grid data structure (2D array) in GridManager</li>
-    <li>LMB places <code>tile_straight</code>, decrements inventory counter</li>
-    <li>RMB removes tile, returns to inventory</li>
-    <li>Items spawn at (0,0) and move +1 X every <code>TickTimer</code> timeout</li>
-    <li>Camera rotation: Wheel input rotates Camera3D around look-at point in 90° increments</li>
-</ul>
-
-<h3>Testing Phase</h3>
-<ul>
-    <li>Verify grid coordinates map correctly to world space at all four camera angles</li>
-    <li>Confirm red cube moves exactly one cell per tick (no physics drift)</li>
-    <li>Ensure inventory stops decrementing at zero (cannot place infinite tiles)</li>
-    <li>Check that removed tiles properly free their grid cell in data structure</li>
-</ul>
-
-<h3>Sprint Checklist</h3>
-<ul class="checklist">
-    <li>Git initialized and pushed to remote</li>
-    <li>Grid coordinate conversion (mouse → grid → world) functional</li>
-    <li>Straight conveyor placement and removal working</li>
-    <li>Discrete tick movement (non-physics) implemented</li>
-    <li>Camera rotates smoothly between four fixed isometric angles</li>
-    <li>UI displays tile count and updates on place/remove</li>
-</ul>
-
-<h3>Milestone Checklist</h3>
-<ul class="checklist">
-    <li>Grey cubes snap to grid and persist between camera rotations</li>
-    <li>Red test item marches in straight line, stepping every 0.5 seconds</li>
-    <li>Cannot exceed tile placement limit</li>
-</ul>
-
-<div class="trello-section">
-    <h4>Trello Documentation</h4>
-    <p><strong>Screenshot:</strong> Isometric view of grid with 3 grey cubes placed and red cube mid-stride</p>
-    <p><em>Caption:</em> "Week 2: Core grid system operational. Discrete tick-based movement replaces physics simulation for deterministic puzzle solving. Grey placeholder meshes represent conveyor infrastructure."</p>
-    
-    <p><strong>Screenshot:</strong> Same scene viewed from rotated camera angle (behind the grid)</p>
-    <p><em>Caption:</em> "Week 3: Camera rotation system implementation. Four fixed orthographic angles allow verification of path alignment and spatial planning in 3D space."</p>
-</div>
-
-<div class="sprint-header">
-    <h2>Sprint 2: Full Mechanics & Level Structure</h2>
-    <p>Weeks 5–8 | Goal: Implement corners, sources/sinks, jam detection, win/loss states, and the five-level campaign</p>
-</div>
-
-<h3>New Scene Specifications</h3>
-
-<div class="scene-spec">
-    <span class="scene-name">tile_corner_left.tscn</span> & <span class="scene-name">tile_corner_right.tscn</span> (Node3D)<br>
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>MeshInstance3D:</strong> Wedge-shaped or rotated grey boxes (distinct from straight)</li>
-    </ul>
-    <strong>Script:</strong> Stores input direction → output direction mapping (e.g., North→West for left turn)
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">source.tscn</span> (Node3D)<br>
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>MeshInstance3D:</strong> Tall green box (1×1×2m)</li>
-        <li><strong>Label3D:</strong> Floating text showing spawn type ("MEAT", "FRUIT", "SPICE")</li>
-        <li><strong>SpawnTimer</strong> (Timer): Controls item creation rate (every 2 ticks)</li>
-    </ul>
-    <strong>Signals:</strong>
-    <ul>
-        <li><code>spawn_item(type, pos)</code> → GridManager handles instantiation</li>
-    </ul>
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">sink.tscn</span> (Node3D)<br>
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>MeshInstance3D:</strong> Red base with hopper shape</li>
-        <li><strong>Label3D:</strong> Shows accepted item type icon</li>
-        <li><strong>Area3D:</strong> Trigger zone for item detection</li>
-    </ul>
-    <strong>Signals:</strong>
-    <ul>
-        <li><code>item_received(type)</code> → <code>game_manager.tscn::_add_score</code></li>
-    </ul>
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">item_fruit.tscn</span> & <span class="scene-name">item_spice.tscn</span> (Node3D)<br>
-    Identical structure to <code>item_meat.tscn</code> but with blue and yellow materials
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">main_menu.tscn</span> (Control)<br>
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>VBoxContainer:</strong> Buttons for "Start Game", "Level Select", "Quit"</li>
-    </ul>
-    <strong>Script:</strong> Loads <code>level_1.tscn</code> on start
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">level_select.tscn</span> (Control)<br>
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>GridContainer:</strong> Five buttons representing levels (locked/unlocked state)</li>
-    </ul>
-    <strong>Script:</strong> Unlocks Level N+1 when Level N quota met
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">level_1.tscn</span> through <span class="scene-name">level_5.tscn</span> (Node3D — inherit from <code>level.tscn</code> structure)<br>
-    Pre-placed Source and Sink nodes at specific coordinates<br>
-    <strong>Obstacles</strong> (StaticBody3D): Black cubes representing walls/freezers blocking grid cells
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">ui_game_over.tscn</span> (CanvasLayer)<br>
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>ResultLabel:</strong> "KITCHEN SHUTDOWN" or "SHIFT COMPLETE"</li>
-        <li><strong>MedalSprite:</strong> Bronze/Silver/Gold icon display</li>
-        <li><strong>RetryButton</strong> → Reloads current level</li>
-        <li><strong>MenuButton</strong> → Returns to <code>main_menu.tscn</code></li>
-    </ul>
-</div>
-
-<h3>Key Tasks</h3>
-<ul>
-    <li>Extend GridManager to handle direction changes at corners (pathfinding logic)</li>
-    <li>Implement item type enum (MEAT=0, FRUIT=1, SPICE=2)</li>
-    <li>Sources spawn correct typed items at intervals</li>
-    <li>Sinks validate type match: correct type awards +10 points and deletes item; wrong type passes through or blocks</li>
-    <li><strong>Jam System:</strong> Before executing moves each tick, check if two items target same cell. If collision predicted: emit <code>jam_detected</code>, pause TickTimer, spawn visual indicator (red flashing cube), require LMB click on jam to clear (remove both items or one, apply -5 penalty)</li>
-    <li>Spacebar toggles Planning (build) vs. Rush Hour (run) states</li>
-    <li>Level Timer: 2-minute countdown during Rush Hour; pause during Planning</li>
-    <li>Win condition: Deliver quota (e.g., 20 items) before timer expires</li>
-    <li>Medal calculation: Bronze (complete), Silver (complete with >30s left), Gold (complete with <50% tiles used)</li>
-    <li>Level progression: Save unlock status to <code>user://savegame.save</code></li>
-</ul>
-
-<h3>Testing Phase</h3>
-<ul>
-    <li>Items correctly turn left/right at corner tiles without derailing</li>
-    <li>Two items converging on center cell triggers Jam state and stops simulation</li>
-    <li>Clicking jam location clears blockage and resumes flow</li>
-    <li>Source stops spawning if output cell occupied (back-pressure)</li>
-    <li>Quota tracker updates; game ends with appropriate medal</li>
-    <li>R key instantly restarts current level</li>
-</ul>
-
-<h3>Sprint Checklist</h3>
-<ul class="checklist">
-    <li>Corner tiles (left/right) route items correctly</li>
-    <li>Sources spawn typed items; Sinks consume matching types</li>
-    <li>Jam detection halts game and requires manual clearance</li>
-    <li>Play/Pause state machine functional (Spacebar)</li>
-    <li>Timer and Quota systems operational</li>
-    <li>Medal calculation (Bronze/Silver/Gold) working</li>
-    <li>5 level scenes created with increasing complexity</li>
-    <li>Main menu and Level select screens navigable</li>
-</ul>
-
-<h3>Milestone Checklist</h3>
-<ul class="checklist">
-    <li>Item travels from Source through corners to Sink without manual intervention</li>
-    <li>Jam stops production line until player intervenes</li>
-    <li>Complete level progression from 1 to 5 with save data persisting</li>
-    <li>Menu flow: Main → Level Select → Game → Win/Retry → Menu</li>
-</ul>
-
-<div class="trello-section">
-    <h4>Trello Documentation</h4>
-    <p><strong>Screenshot:</strong> Complex layout with sources, corners, sinks, and mid-transit items</p>
-    <p><em>Caption:</em> "Week 6: Routing logic complete. Items navigate multi-directional conveyor networks from spawn points to destinations."</p>
-    
-    <p><strong>Screenshot:</strong> Jam state with red visual indicator overlay</p>
-    <p><em>Caption:</em> "Week 7: Exception handling implemented. Mechanical failures require player triage, creating tension between automation efficiency and manual intervention."</p>
-    
-    <p><strong>Screenshot:</strong> Medal award screen showing Gold</p>
-    <p><em>Caption:</em> "Week 8: Scoring ecosystem finalized. Tiered reward system encourages spatial optimization and parsimonious design solutions."</p>
-</div>
-
-<div class="sprint-header">
-    <h2>Sprint 3: Art Pass & Visual Polish</h2>
-    <p>Weeks 9–12 | Goal: Replace placeholders with final 3D assets, add animations/shaders, and implement particle effects</p>
-</div>
-
-<h3>Asset Requirements</h3>
-
-<h4>3D Models (Imported .glb/.gltf files)</h4>
-<ul>
-    <li><code>conveyor_straight.glb</code>: Animated rollers or scrolling texture UVs</li>
-    <li><code>conveyor_corner.glb</code>: Curved belt geometry</li>
-    <li><code>source_hopper.glb</code>: Industrial green funnel</li>
-    <li><code>sink_station.glb</code>: Red processing unit</li>
-    <li><code>crate_meat.glb</code>, <code>crate_fruit.glb</code>, <code>crate_spice.glb</code>: Distinct 3D crates with slight bounce animation</li>
-</ul>
-
-<h4>Scene Modifications</h4>
-
-<div class="scene-spec">
-    <span class="scene-name">tile_straight.tscn</span> (Updated)<br>
-    Replace MeshInstance3D with <strong>Node3D</strong> containing imported <code>conveyor_straight.glb</code><br>
-    <strong>AnimationPlayer:</strong> Plays looped rotation animation during Rush Hour state
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">tile_corner_left.tscn</span> & <span class="scene-name">tile_corner_right.tscn</span> (Updated)<br>
-    Similar replacement with <code>conveyor_corner.glb</code>
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">tile_ghost.tscn</span> (New/Updated)<br>
-    <strong>MeshInstance3D:</strong> Uses imported conveyor model<br>
-    <strong>ShaderMaterial:</strong> Custom spatial shader with transparency and emission
-    <ul>
-        <li>Valid placement: Green tint (0.5, 1.0, 0.5, 0.6)</li>
-        <li>Invalid placement: Red tint (1.0, 0.2, 0.2, 0.6)</li>
-        <li>Pulse effect using <code>TIME</code> uniform</li>
-    </ul>
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">particles/delivery_poof.tscn</span> (GPUParticles3D)<br>
-    White smoke burst, 0.5s lifetime, emitted at Sink location on item receipt
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">particles/jam_sparks.tscn</span> (GPUParticles3D)<br>
-    Red/yellow sparks, continuous emission while Jam state active
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">ui_theme.tres</span> (Theme resource)<br>
-    Panel styles (dark translucent backgrounds), Button hover/pressed states, Font: Roboto or similar sans-serif
-</div>
-
-<h3>Key Tasks</h3>
-<ul>
-    <li>Import and configure 3D assets ensuring pivot points align to grid center (0.5, 0, 0.5)</li>
-    <li>Update all tile scenes to reference final models</li>
-    <li>Create ghost shader (see Appendix B)</li>
-    <li>Add AnimationPlayer to conveyor tiles; play animation only during Rush Hour</li>
-    <li>Replace red/blue/yellow cubes with distinct crate models</li>
-    <li>Emit <code>delivery_poof</code> particles at Sink global position on item receipt</li>
-    <li>Emit <code>jam_sparks</code> at collision grid position during Jam state</li>
-    <li>Add screenshake to Camera3D on Jam detection (tween offset)</li>
-    <li>UI polish: Themed buttons, medal icons (2D sprites), progress bars for timer/quota</li>
-</ul>
-
-<h3>Testing Phase</h3>
-<ul>
-    <li>Verify all placeholder cubes replaced (search project for "BoxMesh")</li>
-    <li>Ghost shader correctly toggles red/green based on placement validity (occupied check)</li>
-    <li>Conveyor animations sync with item movement (items appear to ride the belt)</li>
-    <li>Particle effects do not crash HTML5 export (limit particle count)</li>
-    <li>Game maintains 60fps with all VFX active</li>
-</ul>
-
-<h3>Sprint Checklist</h3>
-<ul class="checklist">
-    <li>All 3D placeholders replaced with imported models</li>
-    <li>Conveyor directional animations implemented and synchronized</li>
-    <li>Ghost placement shader with validity feedback</li>
-    <li>Delivery and Jam particle systems created</li>
-    <li>Item models distinct and readable (Meat/Fruit/Spice)</li>
-    <li>UI themed with custom styles and fonts</li>
-    <li>Camera polish (smooth rotation, bounds clamping)</li>
-</ul>
-
-<h3>Milestone Checklist</h3>
-<ul class="checklist">
-    <li>Game presents as polished 3D product rather than prototype</li>
-    <li>Visual feedback clearly indicates valid/invalid placement</li>
-    <li>Animations enhance readability of item flow</li>
-</ul>
-
-<div class="trello-section">
-    <h4>Trello Documentation</h4>
-    <p><strong>Screenshot:</strong> Side-by-side comparison: grey cube placeholder vs. final conveyor model</p>
-    <p><em>Caption:</em> "Week 10: Asset integration phase. Transitioning from primitive prototyping geometry to textured 3D models with animated components."</p>
-    
-    <p><strong>Screenshot:</strong> Ghost shader preview showing green valid placement over empty grid</p>
-    <p><em>Caption:</em> "Week 11: User feedback systems. Shader-based placement indicators communicate build constraints before player commitment."</p>
-    
-    <p><strong>Screenshot:</strong> Active game with particles (delivery poof at sink)</p>
-    <p><em>Caption:</em> "Week 12: Juiciness pass. Particle effects and camera feedback reinforce game state changes and successes."</p>
-</div>
-
-<div class="sprint-header">
-    <h2>Sprint 4: Audio, Balance & Release</h2>
-    <p>Weeks 13–16 | Goal: Implement sound system, balance level difficulty, fix bugs, and prepare export builds</p>
-</div>
-
-<h3>Scene Specifications</h3>
-
-<div class="scene-spec">
-    <span class="scene-name">audio_manager.tscn</span> (Node — Autoload)<br>
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>MusicPlayer</strong> (AudioStreamPlayer): Streams ambient kitchen loop</li>
-        <li><strong>SFXPool</strong> (Node): Contains 5x AudioStreamPlayer nodes for rapid-fire sounds (prevent cutoffs)</li>
-    </ul>
-    <strong>Bus layout:</strong> Master, Music, SFX (configured in Project Settings)
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">options_menu.tscn</span> (Added to Main Menu)<br>
-    <strong>Children:</strong>
-    <ul>
-        <li><strong>MasterSlider</strong>, <strong>MusicSlider</strong>, <strong>SFXSlider</strong> (HSlider): Range 0-100</li>
-        <li><strong>FullscreenToggle</strong> (CheckButton)</li>
-    </ul>
-</div>
-
-<div class="scene-spec">
-    <span class="scene-name">level_1.tscn</span> through <span class="scene-name">level_5.tscn</span> (Balancing)<br>
-    Adjust <code>TickTimer</code> wait times per level (Level 1: 0.6s, Level 5: 0.3s)<br>
-    Adjust inventory tile limits (start generous, end restrictive)<br>
-    Adjust source spawn rates and quota requirements
-</div>
-
-<h3>Key Tasks</h3>
-<ul>
-    <li>Import audio assets (see Appendix C)</li>
-    <li>Configure Godot Audio Buses with compression/limiting to prevent clipping</li>
-    <li>Implement AudioManager with pooling for conveyor tick sounds (synchronized with GridManager tick)</li>
-    <li>Add UI sounds: Hover (soft click), Press (mechanical thunk), Error (buzzer)</li>
-    <li>Add gameplay sounds: Delivery chime, Jam alarm, Ambient hum</li>
-    <li>Balance pass: Ensure Level 5 Gold medal is achievable but requires optimal pathing</li>
-    <li>Bug hunt: Fix memory leaks (ensure Items queue_free when delivered or jam-cleared), fix camera edge cases</li>
-    <li>Add transition effects: Fade-to-black between scenes</li>
-    <li>Export presets: Windows Desktop, HTML5 (for itch.io)</li>
-    <li>Create <code>README.md</code> with controls and concept description</li>
-</ul>
-
-<h3>Testing Phase</h3>
-<ul>
-    <li>Playthrough all levels without console errors</li>
-    <li>Audio levels balanced (Music -20dB, SFX -10dB relative)</li>
-    <li>HTML5 build tested in Chrome/Firefox (mouse capture works)</li>
-    <li>Gold medal achievable on all levels (verify with spreadsheet of max tiles allowed vs. optimal path length)</li>
-    <li>No crashes on rapid Restart (R key spam)</li>
-</ul>
-
-<h3>Sprint Checklist</h3>
-<ul class="checklist">
-    <li>AudioManager implemented with bus structure and pooling</li>
-    <li>All UI interactions have distinct audio feedback</li>
-    <li>Gameplay events (tick, delivery, jam) synchronized with audio</li>
-    <li>Background music looping correctly</li>
-    <li>Options menu controls volume and fullscreen</li>
-    <li>Level difficulty curve balanced (easy intro, hard finale)</li>
-    <li>Memory leaks fixed (monitor Debugger > Monitors)</li>
-    <li>Export presets configured for Windows and HTML5</li>
-    <li>Final build tested and zipped for submission</li>
-</ul>
-
-<h3>Milestone Checklist</h3>
-<ul class="checklist">
-    <li>Complete audio-visual experience</li>
-    <li>Stable 60fps performance on target hardware</li>
-    <li>Balanced difficulty curve with meaningful Gold medal challenges</li>
-    <li>Distribution-ready build exported</li>
-</ul>
-
-<div class="trello-section">
-    <h4>Trello Documentation</h4>
-    <p><strong>Screenshot:</strong> Audio mixer layout in Godot editor</p>
-    <p><em>Caption:</em> "Week 14: Audio implementation. Bus routing and dynamic range compression configured for clear gameplay communication."</p>
-    
-    <p><strong>Screenshot:</strong> Victory screen with final art and audio credits</p>
-    <p><em>Caption:</em> "Week 16: Release candidate. Final polish complete including difficulty balancing, optimization passes, and platform-specific export testing."</p>
-</div>
-
-<div class="git-reminder">
-    💾 Git Reminder: At the end of every working session—whether you completed a feature or hit a roadblock—stage your changes (<code>git add .</code>), commit with a descriptive message (e.g., <code>git commit -m "Add corner tile rotation logic and fix grid offset bug"</code>), and push to your remote repository (<code>git push origin main</code>). This protects your work and documents your iteration history for your portfolio.
-</div>
-
-<h2>Appendix: Technical References</h2>
-
-<h3>Appendix A: Grid Coordinate Conversion (Conceptual)</h3>
-<p>Reference for <code>level.tscn</code> camera script: Use <code>Camera3D.project_ray_origin(mouse_pos)</code> and <code>project_ray_normal()</code> to intersect with mathematical plane at Y=0. Convert resulting Vector3 to Vector2i by flooring X and Z coordinates. Account for camera rotation by ensuring raycast uses current camera transform.</p>
-
-<h3>Appendix B: Ghost Shader (Conceptual)</h3>
-<p>Spatial shader using <code>render_mode unshaded, blend_mix</code>. Uniforms: <code>validity_color</code> (green/red). Vertex shader: slight Y-offset oscillation using <code>TIME</code>. Fragment shader: sample albedo texture if present, multiply by <code>validity_color</code> with transparency 0.6. Discard pixels below alpha threshold for cutout effect.</p>
-
-<h3>Appendix C: Audio Implementation Pattern (Conceptual)</h3>
-<p>AudioManager singleton maintains array of AudioStreamPlayer nodes. Method <code>play_sfx(stream: AudioStream)</code> finds first non-playing player, assigns stream, and plays. Prevents rapid-fire sound cutoffs (e.g., multiple placement clicks). Background music uses separate AudioStreamPlayer with <code>loop</code> enabled.</p>
+    // Auto-expand first sprint on load
+    window.onload = function() {
+        document.getElementById('content-1').classList.add('active');
+    };
+</script>
 
 </body>
 </html>
