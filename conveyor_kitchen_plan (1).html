@@ -27,7 +27,10 @@
     --s3: #66ccff;
     --s4: #4488ff;
     --check-success: #00ff88;
-    --check-success-bg: rgba(0, 255, 136, 0.1);
+    --check-success-glow: rgba(0, 255, 136, 0.4);
+    --check-success-bg: rgba(0, 255, 136, 0.08);
+    --milestone-gold: #ffd700;
+    --milestone-gold-glow: rgba(255, 215, 0, 0.4);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -582,94 +585,397 @@
   .signal-table td:nth-child(2) { font-family: var(--mono); color: var(--accent2); font-size: 12px; }
   .signal-table td:nth-child(3) { font-family: var(--mono); color: var(--accent3); font-size: 12px; }
 
-  /* CHECKLIST */
-  .checklist {
-    list-style: none;
-    margin: 12px 0;
+  /* ================================
+     ENHANCED CLICKABLE CHECKLIST 
+     ================================ */
+  
+  /* Checklist Container */
+  .checklist-wrapper {
+    position: relative;
+    margin: 16px 0;
+    padding: 0;
   }
 
+  /* Progress Bar */
+  .checklist-progress {
+    position: relative;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  .checklist-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--check-success));
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .checklist-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.3),
+      transparent
+    );
+    animation: progressShine 2s ease-in-out infinite;
+  }
+
+  @keyframes progressShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .checklist-progress-bar.complete {
+    background: linear-gradient(90deg, var(--check-success), #00cc66);
+    box-shadow: 0 0 20px var(--check-success-glow);
+  }
+
+  /* Progress Stats */
+  .checklist-stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .checklist-stats .count {
+    color: var(--check-success);
+    font-weight: 700;
+    text-shadow: 0 0 10px var(--check-success-glow);
+  }
+
+  .checklist-stats .separator {
+    color: var(--border);
+  }
+
+  .checklist-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--check-success-bg);
+    border: 1px solid var(--check-success);
+    border-radius: 20px;
+    color: var(--check-success);
+    font-family: var(--head);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 15px var(--check-success-glow);
+  }
+
+  .checklist-badge.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .checklist-badge svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* Checklist Base */
+  .checklist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+
+  /* Individual List Items */
   .checklist li {
+    position: relative;
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px dashed var(--border);
+    gap: 14px;
+    padding: 14px 16px;
+    margin: 4px 0;
+    border-radius: 8px;
     font-size: 14px;
-    transition: all 0.2s ease;
     cursor: pointer;
     user-select: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    border: 1px solid transparent;
+    overflow: hidden;
+  }
+
+  .checklist li::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(0,255,136,0.03) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
   .checklist li:hover {
     background: rgba(0,136,255,0.03);
-    padding-left: 8px;
+    border-color: rgba(0,136,255,0.15);
+    transform: translateX(4px);
   }
 
-  .checklist li:last-child { border-bottom: none; }
-
-  /* Clickable checkbox styling */
-  .checkbox {
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--text-dim);
-    border-radius: 3px;
-    flex-shrink: 0;
-    margin-top: 2px;
-    transition: all 0.2s ease;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .checklist li:hover .checkbox {
-    border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(0,136,255,0.3);
-  }
-
-  /* Checkmark SVG */
-  .checkbox::after {
-    content: '';
-    position: absolute;
-    width: 10px;
-    height: 6px;
-    border-left: 2px solid transparent;
-    border-bottom: 2px solid transparent;
-    transform: rotate(-45deg) translate(1px, -1px);
-    transition: all 0.15s ease;
-    opacity: 0;
-  }
-
-  /* Checked state */
-  .checkbox.checked {
-    background: var(--check-success);
-    border-color: var(--check-success);
-    box-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
-  }
-
-  .checkbox.checked::after {
-    border-color: var(--bg);
+  .checklist li:hover::before {
     opacity: 1;
   }
 
-  /* Checked list item styling */
+  /* Ripple Effect Container */
+  .checklist li .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--check-success);
+    opacity: 0.4;
+    transform: scale(0);
+    animation: rippleEffect 0.6s ease-out forwards;
+    pointer-events: none;
+  }
+
+  @keyframes rippleEffect {
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  /* Checkbox Container */
+  .checkbox {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Outer Ring */
+  .checkbox .checkbox-outer {
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--text-dim);
+    border-radius: 6px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+  }
+
+  /* Inner Fill */
+  .checkbox .checkbox-inner {
+    position: absolute;
+    inset: 3px;
+    border-radius: 4px;
+    background: transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Checkmark SVG */
+  .checkbox .checkmark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0) rotate(-45deg);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .checkbox .checkmark svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--bg);
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .checkbox .checkmark .check-path {
+    stroke-dasharray: 20;
+    stroke-dashoffset: 20;
+    transition: stroke-dashoffset 0.3s ease 0.1s;
+  }
+
+  /* Glow Effect */
+  .checkbox .glow {
+    position: absolute;
+    inset: -4px;
+    border-radius: 10px;
+    background: var(--check-success);
+    opacity: 0;
+    filter: blur(8px);
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  /* Hover State */
+  .checklist li:hover .checkbox .checkbox-outer {
+    border-color: var(--accent);
+    box-shadow: 0 0 15px rgba(0,136,255,0.3);
+  }
+
+  /* Checked States */
   .checklist li.checked {
     background: var(--check-success-bg);
-    padding-left: 12px;
+    border-color: rgba(0,255,136,0.2);
   }
 
-  .checklist li.checked .checkbox {
-    background: var(--check-success);
+  .checklist li.checked .checkbox-outer {
     border-color: var(--check-success);
+    background: var(--check-success);
+    box-shadow: 
+      0 0 20px var(--check-success-glow),
+      inset 0 0 10px rgba(0,0,0,0.2);
+    transform: scale(1.05);
   }
 
-  /* Strikethrough for checked items */
+  .checklist li.checked .checkbox-inner {
+    background: rgba(255,255,255,0.2);
+  }
+
+  .checklist li.checked .checkmark {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  .checklist li.checked .checkmark .check-path {
+    stroke-dashoffset: 0;
+  }
+
+  .checklist li.checked .glow {
+    opacity: 0.6;
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
+  }
+
+  /* Text Strikethrough Animation */
+  .checklist li .item-text {
+    position: relative;
+    transition: all 0.3s ease;
+    flex: 1;
+    padding-top: 2px;
+  }
+
+  .checklist li .item-text::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--check-success);
+    transition: width 0.4s ease;
+    box-shadow: 0 0 8px var(--check-success-glow);
+  }
+
   .checklist li.checked .item-text {
-    text-decoration: line-through;
     color: var(--text-dim);
   }
 
-  .checklist.milestone li .checkbox { border-color: var(--accent); }
+  .checklist li.checked .item-text::after {
+    width: 100%;
+  }
+
+  /* Item entrance animation */
+  .checklist li {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  .checklist.animate-in li {
+    animation: slideIn 0.4s ease forwards;
+  }
+
+  .checklist.animate-in li:nth-child(1) { animation-delay: 0.05s; }
+  .checklist.animate-in li:nth-child(2) { animation-delay: 0.1s; }
+  .checklist.animate-in li:nth-child(3) { animation-delay: 0.15s; }
+  .checklist.animate-in li:nth-child(4) { animation-delay: 0.2s; }
+  .checklist.animate-in li:nth-child(5) { animation-delay: 0.25s; }
+  .checklist.animate-in li:nth-child(6) { animation-delay: 0.3s; }
+  .checklist.animate-in li:nth-child(7) { animation-delay: 0.35s; }
+  .checklist.animate-in li:nth-child(8) { animation-delay: 0.4s; }
+  .checklist.animate-in li:nth-child(9) { animation-delay: 0.45s; }
+  .checklist.animate-in li:nth-child(10) { animation-delay: 0.5s; }
+  .checklist.animate-in li:nth-child(11) { animation-delay: 0.55s; }
+  .checklist.animate-in li:nth-child(12) { animation-delay: 0.6s; }
+
+  @keyframes slideIn {
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Milestone Checklist Special Styling */
+  .checklist.milestone li .checkbox .checkbox-outer {
+    border-color: var(--milestone-gold);
+    border-width: 3px;
+  }
+
+  .checklist.milestone li.checked .checkbox .checkbox-outer {
+    background: var(--milestone-gold);
+    box-shadow: 
+      0 0 25px var(--milestone-gold-glow),
+      inset 0 0 10px rgba(0,0,0,0.2);
+  }
+
+  .checklist.milestone li.checked .glow {
+    background: var(--milestone-gold);
+  }
+
+  .checklist.milestone li.checked .item-text::after {
+    background: var(--milestone-gold);
+    box-shadow: 0 0 8px var(--milestone-gold-glow);
+  }
+
+  /* Completion Celebration */
+  .checklist-wrapper.celebrating::before {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    background: radial-gradient(circle at center, var(--check-success-glow) 0%, transparent 70%);
+    animation: celebrationGlow 1s ease-out forwards;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  @keyframes celebrationGlow {
+    0% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; }
+    100% { opacity: 0; transform: scale(2); }
+  }
+
+  /* Confetti Canvas */
+  #confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+  }
 
   /* TRELLO BOX */
   .trello-box {
@@ -936,6 +1242,9 @@
 </head>
 <body>
 
+<!-- Confetti Canvas -->
+<canvas id="confetti-canvas"></canvas>
+
 <!-- Loading Screen -->
 <div id="loader">
   <div class="loader-text">INITIALIZING SYSTEM...</div>
@@ -998,7 +1307,33 @@
           </div>
         </div>
 
-        <h4 class="animate-on-enter delay-4">Project Structure (Godot FileSystem)</h4>
+        <h4 class="animate-on-enter delay-4">Complete Scene Inventory</h4>
+        <p class="animate-on-enter delay-4">Every scene and autoload you will create across all 4 sprints — use this as your master reference.</p>
+        <table class="signal-table animate-on-enter delay-4" style="margin-bottom:0;">
+          <tr><th>File</th><th>Root Node</th><th>Sprint</th></tr>
+          <tr><td>autoloads/GameManager.gd</td><td>Autoload singleton</td><td>1</td></tr>
+          <tr><td>scenes/GameWorld.tscn</td><td>Node3D</td><td>1</td></tr>
+          <tr><td>scenes/GridManager.tscn</td><td>Node3D</td><td>1</td></tr>
+          <tr><td>scenes/PlacementController.tscn</td><td>Node3D</td><td>1</td></tr>
+          <tr><td>scenes/ConveyorTile.tscn</td><td>Node3D</td><td>1</td></tr>
+          <tr><td>scenes/SourceNode.tscn</td><td>Node3D</td><td>1</td></tr>
+          <tr><td>scenes/SinkNode.tscn</td><td>Node3D</td><td>1</td></tr>
+          <tr><td>scenes/ItemCrate.tscn</td><td>Node3D</td><td>1</td></tr>
+          <tr><td>scenes/HUD.tscn</td><td>CanvasLayer</td><td>2</td></tr>
+          <tr><td>scenes/ResultScreen.tscn</td><td>Control</td><td>2</td></tr>
+          <tr><td>scenes/MainMenu.tscn</td><td>Control</td><td>2</td></tr>
+          <tr><td>scenes/LevelSelect.tscn</td><td>Control</td><td>2</td></tr>
+          <tr><td>scripts/LevelConfig.gd</td><td>Resource (class_name)</td><td>2</td></tr>
+          <tr><td>scripts/SaveData.gd</td><td>Resource (class_name)</td><td>2</td></tr>
+          <tr><td>levels/level_01.tres … level_05.tres</td><td>LevelConfig resources</td><td>2</td></tr>
+          <tr><td>scenes/ConveyorCorner.tscn</td><td>Node3D</td><td>3</td></tr>
+          <tr><td>scenes/ObstacleBlock.tscn</td><td>Node3D</td><td>3</td></tr>
+          <tr><td>assets/shaders/ghost_tile.gdshader</td><td>Spatial Shader</td><td>3</td></tr>
+          <tr><td>assets/shaders/belt_scroll.gdshader</td><td>Spatial Shader</td><td>4</td></tr>
+          <tr><td>assets/theme.tres</td><td>Theme Resource</td><td>3</td></tr>
+          <tr><td>autoloads/AudioManager.gd</td><td>Autoload singleton</td><td>4</td></tr>
+          <tr><td>levels/sandbox.tres</td><td>LevelConfig resource</td><td>4</td></tr>
+        </table>
         <div class="node-tree animate-on-enter delay-4">
           <span class="node-line"><span class="node-name">res://</span></span>
           <span class="node-line depth-1"><span class="node-name">scenes/</span> <span class="node-desc">&mdash; All .tscn files</span></span>
@@ -1202,25 +1537,43 @@
           </div>
 
           <h4 class="animate-on-enter">Sprint 1 Checklist</h4>
-          <ul class="checklist animate-on-enter">
-            <li><span class="checkbox"></span><span class="item-text">GameManager autoload registered with Phase enum and tick timer</span></li>
-            <li><span class="checkbox"></span><span class="item-text">GridManager stores tiles as Dictionary&lt;Vector2i, ConveyorTile&gt;</span></li>
-            <li><span class="checkbox"></span><span class="item-text">PlacementController raycasts to floor plane and snaps to grid</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Ghost tile follows cursor in Planning Phase only</span></li>
-            <li><span class="checkbox"></span><span class="item-text">LMB places tile, RMB removes tile, R rotates, 1/2/3 select type</span></li>
-            <li><span class="checkbox"></span><span class="item-text">ConveyorTile direction table implemented and tested</span></li>
-            <li><span class="checkbox"></span><span class="item-text">SourceNode spawns ItemCrate on tick signal</span></li>
-            <li><span class="checkbox"></span><span class="item-text">ItemCrate tweens to next cell each tick</span></li>
-            <li><span class="checkbox"></span><span class="item-text">SinkNode destroys matching item and emits item_delivered</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Space toggles Planning ↔ Rush Hour</span></li>
-          </ul>
+          <div class="checklist-wrapper animate-on-enter" data-checklist="sprint1">
+            <div class="checklist-progress">
+              <div class="checklist-progress-bar"></div>
+            </div>
+            <div class="checklist-stats">
+              <span><span class="count">0</span><span class="separator">/</span><span class="total">10</span> completed</span>
+              <span class="checklist-badge"><svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>ALL DONE</span>
+            </div>
+            <ul class="checklist animate-in">
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">GameManager autoload registered with Phase enum and tick timer</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">GridManager stores tiles as Dictionary&lt;Vector2i, ConveyorTile&gt;</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">PlacementController raycasts to floor plane and snaps to grid</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Ghost tile follows cursor in Planning Phase only</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">LMB places tile, RMB removes tile, R rotates, 1/2/3 select type</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">ConveyorTile direction table implemented and tested</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">SourceNode spawns ItemCrate on tick signal</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">ItemCrate tweens to next cell each tick</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">SinkNode destroys matching item and emits item_delivered</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Space toggles Planning ↔ Rush Hour</span></li>
+            </ul>
+          </div>
 
           <h4 class="animate-on-enter">Sprint 1 Milestone Checklist</h4>
-          <ul class="checklist milestone animate-on-enter">
-            <li><span class="checkbox"></span><span class="item-text">A coloured cube travels from a Source, along manually placed conveyor tiles (including a corner), to a Sink, and is consumed</span></li>
-            <li><span class="checkbox"></span><span class="item-text">The game never crashes when placing or removing tiles during Planning Phase</span></li>
-            <li><span class="checkbox"></span><span class="item-text">The isometric camera shows the scene clearly from one fixed angle</span></li>
-          </ul>
+          <div class="checklist-wrapper animate-on-enter" data-checklist="sprint1-milestone">
+            <div class="checklist-progress">
+              <div class="checklist-progress-bar"></div>
+            </div>
+            <div class="checklist-stats">
+              <span><span class="count">0</span><span class="separator">/</span><span class="total">3</span> completed</span>
+              <span class="checklist-badge"><svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>ALL DONE</span>
+            </div>
+            <ul class="checklist milestone animate-in">
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">A coloured cube travels from a Source, along manually placed conveyor tiles (including a corner), to a Sink, and is consumed</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">The game never crashes when placing or removing tiles during Planning Phase</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">The isometric camera shows the scene clearly from one fixed angle</span></li>
+            </ul>
+          </div>
 
           <div class="trello-box animate-on-enter">
             <h4>📋 Trello Documentation — Sprint 1</h4>
@@ -1365,6 +1718,32 @@
 
           <div class="scene-card animate-on-enter delay-4">
             <div class="scene-card-header">
+              <span class="scene-icon">🗂</span>
+              <span class="scene-filename">scenes/LevelSelect.tscn</span>
+              <span class="scene-root">Root: Control</span>
+            </div>
+            <div class="scene-body">
+              <p>An optional but recommended scene between MainMenu and GameWorld — lets the player see all 5 levels and their completion status. Keep it simple for Sprint 2: 5 buttons in a row, labelled "Level 1" through "Level 5".</p>
+              <div class="node-tree">
+                <span class="node-line"><span class="node-name">LevelSelect</span> <span class="node-type">: Control</span></span>
+                <span class="node-line depth-1"><span class="node-name">TitleLabel</span> <span class="node-type">: Label</span> <span class="node-desc">&mdash; "SELECT LEVEL"</span></span>
+                <span class="node-line depth-1"><span class="node-name">LevelGrid</span> <span class="node-type">: HBoxContainer</span></span>
+                <span class="node-line depth-2"><span class="node-name">Level1Button</span> <span class="node-type">: Button</span> <span class="node-desc">&mdash; loads level_01.tres</span></span>
+                <span class="node-line depth-2"><span class="node-name">Level2Button … Level5Button</span> <span class="node-type">: Button</span></span>
+                <span class="node-line depth-1"><span class="node-name">BackButton</span> <span class="node-type">: Button</span> <span class="node-desc">&mdash; returns to MainMenu</span></span>
+              </div>
+              <p>In <code>_ready()</code>, load <code>SaveData</code> and for each button, show a grade badge (Bronze/Silver/Gold) if the level has been completed. Levels beyond the first completed one can remain locked (button disabled) if desired — this is up to you. See <strong>Appendix N</strong> for the level loading pattern.</p>
+              <h4>Signals — LevelSelect</h4>
+              <table class="signal-table">
+                <tr><th>Signal</th><th>Emitted by</th><th>Connect to</th></tr>
+                <tr><td>pressed</td><td>Level1Button</td><td>LevelSelect._on_level_pressed (load level 1)</td></tr>
+                <tr><td>pressed</td><td>BackButton</td><td>LevelSelect._on_back_pressed</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="scene-card animate-on-enter delay-4">
+            <div class="scene-card-header">
               <span class="scene-icon">🏠</span>
               <span class="scene-filename">scenes/MainMenu.tscn</span>
               <span class="scene-root">Root: Control</span>
@@ -1373,10 +1752,11 @@
               <div class="node-tree">
                 <span class="node-line"><span class="node-name">MainMenu</span> <span class="node-type">: Control</span></span>
                 <span class="node-line depth-1"><span class="node-name">TitleLabel</span> <span class="node-type">: Label</span> <span class="node-desc">&mdash; "CONVEYOR KITCHEN"</span></span>
-                <span class="node-line depth-1"><span class="node-name">StartButton</span> <span class="node-type">: Button</span> <span class="node-desc">&mdash; Loads Level 1</span></span>
+                <span class="node-line depth-1"><span class="node-name">StartButton</span> <span class="node-type">: Button</span> <span class="node-desc">&mdash; Loads LevelSelect.tscn</span></span>
+                <span class="node-line depth-1"><span class="node-name">SandboxButton</span> <span class="node-type">: Button</span> <span class="node-desc">&mdash; disabled for now, enabled in Sprint 4</span></span>
                 <span class="node-line depth-1"><span class="node-name">QuitButton</span> <span class="node-type">: Button</span> <span class="node-desc">&mdash; get_tree().quit()</span></span>
               </div>
-              <p>Keep this extremely simple for now — just functional buttons. It will be styled in Sprint 3.</p>
+              <p>Keep this simple for now — just functional buttons. It will be styled in Sprint 3.</p>
             </div>
           </div>
 
@@ -1418,27 +1798,46 @@
           </div>
 
           <h4 class="animate-on-enter">Sprint 2 Checklist</h4>
-          <ul class="checklist animate-on-enter">
-            <li><span class="checkbox"></span><span class="item-text">Jam detection runs before item movement each tick</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Jammed items are paused until cleared</span></li>
-            <li><span class="checkbox"></span><span class="item-text">3 jams triggers Kitchen Shutdown</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Timer counts down in Rush Hour only</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Bronze/Silver/Gold grading logic implemented</span></li>
-            <li><span class="checkbox"></span><span class="item-text">HUD displays timer, score, deliveries, jam count, inventory</span></li>
-            <li><span class="checkbox"></span><span class="item-text">ResultScreen shows grade, score, retry/next/menu buttons</span></li>
-            <li><span class="checkbox"></span><span class="item-text">MainMenu loads Level 1</span></li>
-            <li><span class="checkbox"></span><span class="item-text">LevelConfig Resource used for all 5 levels</span></li>
-            <li><span class="checkbox"></span><span class="item-text">GameWorld builds level procedurally from LevelConfig</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Camera rotates through 4 isometric angles via mouse wheel</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Level 5 uses 0.3s tick rate</span></li>
-          </ul>
+          <div class="checklist-wrapper animate-on-enter" data-checklist="sprint2">
+            <div class="checklist-progress">
+              <div class="checklist-progress-bar"></div>
+            </div>
+            <div class="checklist-stats">
+              <span><span class="count">0</span><span class="separator">/</span><span class="total">13</span> completed</span>
+              <span class="checklist-badge"><svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>ALL DONE</span>
+            </div>
+            <ul class="checklist animate-in">
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Jam detection runs before item movement each tick</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Jammed items are paused until cleared</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">3 jams triggers Kitchen Shutdown</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Timer counts down in Rush Hour only</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Bronze/Silver/Gold grading logic implemented</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">HUD displays timer, score, deliveries, jam count, inventory</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">ResultScreen shows grade, score, retry/next/menu buttons</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">MainMenu loads Level 1</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">LevelConfig Resource used for all 5 levels</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">GameWorld builds level procedurally from LevelConfig</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">LevelSelect.tscn implemented and navigable from MainMenu</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Camera rotates through 4 isometric angles via mouse wheel</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Level 5 uses 0.3s tick rate</span></li>
+            </ul>
+          </div>
 
           <h4 class="animate-on-enter">Sprint 2 Milestone Checklist</h4>
-          <ul class="checklist milestone animate-on-enter">
-            <li><span class="checkbox"></span><span class="item-text">Full game loop is playable: Main Menu → 5 Campaign Levels → Result Screens → back to Menu</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Win and lose states both trigger correctly with appropriate feedback</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Gold grading is achievable but challenging on Level 1</span></li>
-          </ul>
+          <div class="checklist-wrapper animate-on-enter" data-checklist="sprint2-milestone">
+            <div class="checklist-progress">
+              <div class="checklist-progress-bar"></div>
+            </div>
+            <div class="checklist-stats">
+              <span><span class="count">0</span><span class="separator">/</span><span class="total">3</span> completed</span>
+              <span class="checklist-badge"><svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>ALL DONE</span>
+            </div>
+            <ul class="checklist milestone animate-in">
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Full game loop is playable: Main Menu → 5 Campaign Levels → Result Screens → back to Menu</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Win and lose states both trigger correctly with appropriate feedback</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Gold grading is achievable but challenging on Level 1</span></li>
+            </ul>
+          </div>
 
           <div class="trello-box animate-on-enter">
             <h4>📋 Trello Documentation — Sprint 2</h4>
@@ -1483,47 +1882,217 @@
           <div class="warn animate-on-enter delay-1"><span class="warn-icon">⚠️</span> <div><strong>Replace incrementally, not all at once.</strong> Swap one asset type per session, then test that gameplay still works. Replacing everything simultaneously makes debugging a nightmare.</div></div>
 
           <h3 class="animate-on-enter delay-2">Week 9 — 3D Model Import &amp; Conveyor Mesh</h3>
-          <p class="animate-on-enter delay-2">Source or create low-poly 3D models. Options: use Blender (free), purchase a low-poly kitchen asset pack, or use Godot's <code>CSGBox</code> + <code>CSGCylinder</code> nodes to assemble the conveyor from primitives without external tools.</p>
+          <p class="animate-on-enter delay-2">Source or create low-poly 3D models. Options: use Blender (free), purchase a low-poly kitchen asset pack, or use Godot's <code>CSGBox</code> + <code>CSGCylinder</code> nodes to assemble the conveyor from primitives without external tools. The GDD specifies low-fidelity, high-readability — do not get lost in detail. Function first, fidelity second.</p>
 
-          <h4 class="animate-on-enter delay-2">Conveyor Tile Model (Straight)</h4>
-          <p class="animate-on-enter delay-2">The model needs: a flat 1m×1m base, and several roller cylinder meshes across it. If using Blender, export as <code>.glb</code> — Godot imports these natively. Place the model at <code>assets/models/conveyor_straight.glb</code>. Update <code>ConveyorTile.tscn</code>: remove the placeholder BoxMesh, add a child <code>Node3D</code> and instance the imported <code>.glb</code> scene inside it.</p>
+          <h4 class="animate-on-enter delay-2">Recommended Asset Sources</h4>
+          <p class="animate-on-enter delay-2">For free, licence-clear 3D assets, try: <strong>Kenney.nl</strong> (excellent low-poly packs, free for commercial use), <strong>Quaternius.com</strong> (free animated character and prop packs), or <strong>itch.io</strong> free asset packs. If you want to model yourself, Blender is free and exports <code>.glb</code> natively. Alternatively, assemble everything from Godot's built-in CSG primitives — this is the fastest option and perfectly acceptable for this project.</p>
 
-          <div class="warn animate-on-enter delay-2"><span class="warn-icon">⚠️</span> <div>When importing a .glb, Godot creates a read-only scene. To modify it (e.g., animate rollers), use "Advanced Import Settings" and enable "Use Named Skins" or simply create a new .tscn that instances the .glb and adds your modifications on top.</div></div>
+          <div class="scene-card animate-on-enter delay-2">
+            <div class="scene-card-header">
+              <span class="scene-icon">🔧</span>
+              <span class="scene-filename">scenes/ConveyorTile.tscn</span>
+              <span class="scene-root">Updated: BoxMesh → GLB model</span>
+            </div>
+            <div class="scene-body">
+              <p>Update the Sprint 1 scene. Remove the placeholder <code>BoxMesh</code> and <code>ArrowMesh</code>. Add a <code>Node3D</code> child called <code>ModelRoot</code> and instance your conveyor model inside it. Add an <code>AnimationPlayer</code> sibling for the roller animation.</p>
+              <div class="node-tree">
+                <span class="node-line"><span class="node-name">ConveyorTile</span> <span class="node-type">: Node3D</span> <span class="node-desc">&mdash; script unchanged from Sprint 1</span></span>
+                <span class="node-line depth-1"><span class="node-name">ModelRoot</span> <span class="node-type">: Node3D</span> <span class="node-desc">&mdash; holds the imported .glb instance</span></span>
+                <span class="node-line depth-2"><span class="node-name">Base</span> <span class="node-type">: MeshInstance3D</span> <span class="node-desc">&mdash; flat 1m×1m frame (dark grey)</span></span>
+                <span class="node-line depth-2"><span class="node-name">Roller01..05</span> <span class="node-type">: MeshInstance3D</span> <span class="node-desc">&mdash; cylinder meshes spanning width of tile</span></span>
+                <span class="node-line depth-1"><span class="node-name">AnimationPlayer</span> <span class="node-type">: AnimationPlayer</span> <span class="node-desc">&mdash; plays "roll" animation on Rush Hour</span></span>
+              </div>
+              <p>The model only needs: a flat base slab + 4–5 cylinder rollers evenly spaced across it. If using CSG: a <code>CSGBox3D</code> for the base and 5 <code>CSGCylinder3D</code> nodes rotated 90° on the Z axis for rollers. Set all CSG nodes to <em>Use Collision: false</em> (they're visual only).</p>
+              <div class="warn"><span class="warn-icon">⚠️</span> <div>When importing a .glb, Godot creates a read-only scene. To modify it (e.g., animate rollers), create a new <code>.tscn</code> that instances the .glb and adds nodes on top. Don't try to edit the imported scene directly.</div></div>
+              <h4>Conveyor Belt Animation</h4>
+              <p>In <code>AnimationPlayer</code>, create an animation called <code>roll</code> (length: 0.5s, loop: true). Add a track for each roller's <code>rotation_degrees.x</code> property: keyframe 0° at t=0, keyframe 360° at t=0.5s. Connect <code>GameManager.phase_changed</code> → <code>ConveyorTile._on_phase_changed</code> to start/stop playback. See <strong>Appendix I</strong>.</p>
+            </div>
+          </div>
 
-          <h4 class="animate-on-enter delay-2">Conveyor Belt Animation</h4>
-          <p class="animate-on-enter delay-2">The rolling animation is visual only — it doesn't affect gameplay. In <code>ConveyorTile.tscn</code>, add an <code>AnimationPlayer</code> child. Create an animation called <code>roll</code> that rotates each roller cylinder around its local X-axis. Play this animation only during Rush Hour. Connect <code>GameManager.phase_changed</code> to a method that starts/stops the AnimationPlayer. See <strong>Appendix I</strong>.</p>
+          <div class="scene-card animate-on-enter delay-2">
+            <div class="scene-card-header">
+              <span class="scene-icon">🗺</span>
+              <span class="scene-filename">scenes/ConveyorCorner.tscn</span>
+              <span class="scene-root">Root: Node3D (new scene)</span>
+            </div>
+            <div class="scene-body">
+              <p>The corner tile needs a different model from the straight tile — a 90° arc shape rather than a straight belt. Create a separate scene (<code>ConveyorCorner.tscn</code>) that shares the same script as <code>ConveyorTile.tscn</code> but uses a different model. The easiest approach: use the same flat base but replace the straight rollers with a curved arrangement of shorter cylinders, or simply use a flat platform with an arc drawn using 3–4 angled cylinders.</p>
+              <div class="warn"><span class="warn-icon">⚠️</span> <div>The <code>CORNER_L</code> and <code>CORNER_R</code> tile types already exist in the direction logic from Sprint 1. You don't need to create new scripts — just two new scene files (<code>ConveyorCorner.tscn</code>, with the model mirrored for left/right via <code>scale.x = -1</code>).</div></div>
+            </div>
+          </div>
 
           <h3 class="animate-on-enter delay-3">Week 10 — Source, Sink, Item &amp; Obstacle Models</h3>
-          <p class="animate-on-enter delay-3">Replace remaining placeholders:</p>
-          <ul class="plain animate-on-enter delay-3">
-            <li><strong>SourceNode:</strong> Replace box with an industrial hopper model (or a CSG-assembled chute). Add a <code>Label3D</code> child showing the item type icon (emoji works for now: 🥩 🍎 🌶).</li>
-            <li><strong>SinkNode:</strong> Replace box with a receptacle model. Add a red-accented trim material. A <code>Label3D</code> showing the accepted type.</li>
-            <li><strong>ItemCrate:</strong> Replace box mesh with a slightly rounded cube. Add a subtle <code>AnimationPlayer</code> that plays a small bounce (scale Y from 1.0 to 1.1 to 1.0) on each tick arrival. See <strong>Appendix I</strong>.</li>
-            <li><strong>Obstacles:</strong> Replace obstacle boxes with a freezer unit model (or a white CSG box with a blue tint material).</li>
-            <li><strong>Floor Tiles:</strong> Replace the flat ground plane with individual 1m×1m tile meshes (white/checkerboard), one per cell, spawned by GridManager at startup.</li>
-          </ul>
+          <p class="animate-on-enter delay-3">Replace all remaining placeholder boxes. Work through them one at a time — replace one, run the game, confirm gameplay still works, then move to the next. Never replace more than one asset type per session.</p>
 
-          <h3 class="animate-on-enter delay-4">Week 11 — Ghost Shader &amp; Camera Polish</h3>
+          <div class="scene-card animate-on-enter delay-3">
+            <div class="scene-card-header">
+              <span class="scene-icon">📦</span>
+              <span class="scene-filename">scenes/SourceNode.tscn</span>
+              <span class="scene-root">Updated: tall box → industrial hopper</span>
+            </div>
+            <div class="scene-body">
+              <div class="node-tree">
+                <span class="node-line"><span class="node-name">SourceNode</span> <span class="node-type">: Node3D</span></span>
+                <span class="node-line depth-1"><span class="node-name">HopperMesh</span> <span class="node-type">: MeshInstance3D</span> <span class="node-desc">&mdash; tall industrial chute shape (CSGBox or imported model)</span></span>
+                <span class="node-line depth-1"><span class="node-name">ItemTypeLabel</span> <span class="node-type">: Label3D</span> <span class="node-desc">&mdash; shows item type emoji (🥩 🍎 🌶)</span></span>
+                <span class="node-line depth-1"><span class="node-name">ColourAccent</span> <span class="node-type">: MeshInstance3D</span> <span class="node-desc">&mdash; small coloured band: red/blue/yellow per item type</span></span>
+                <span class="node-line depth-1"><span class="node-name">SpawnPoint</span> <span class="node-type">: Marker3D</span> <span class="node-desc">&mdash; unchanged from Sprint 1</span></span>
+              </div>
+              <p>A <code>Label3D</code> is perfect here — it renders in 3D world space, always faces the camera when <code>Billboard</code> mode is enabled, and needs no extra code. Set the font size high enough to be readable from the isometric view.</p>
+            </div>
+          </div>
 
-          <h4 class="animate-on-enter delay-4">Ghost Placement Shader</h4>
-          <p class="animate-on-enter delay-4">Create <code>assets/shaders/ghost_tile.gdshader</code>. This shader renders the ghost tile as cyan, translucent, with a pulsing rim effect. Apply it as an override material on the GhostTile mesh. See <strong>Appendix J</strong> for the shader code.</p>
+          <div class="scene-card animate-on-enter delay-3">
+            <div class="scene-card-header">
+              <span class="scene-icon">🎯</span>
+              <span class="scene-filename">scenes/SinkNode.tscn</span>
+              <span class="scene-root">Updated: flat box → receptacle station</span>
+            </div>
+            <div class="scene-body">
+              <div class="node-tree">
+                <span class="node-line"><span class="node-name">SinkNode</span> <span class="node-type">: Node3D</span></span>
+                <span class="node-line depth-1"><span class="node-name">BaseMesh</span> <span class="node-type">: MeshInstance3D</span> <span class="node-desc">&mdash; low, wide platform mesh</span></span>
+                <span class="node-line depth-1"><span class="node-name">RedTrimMesh</span> <span class="node-type">: MeshInstance3D</span> <span class="node-desc">&mdash; thin border around base, red emissive material</span></span>
+                <span class="node-line depth-1"><span class="node-name">AcceptedTypeLabel</span> <span class="node-type">: Label3D</span> <span class="node-desc">&mdash; shows accepted item type symbol</span></span>
+              </div>
+            </div>
+          </div>
 
-          <div class="warn animate-on-enter delay-4"><span class="warn-icon">⚠️</span> <div>To make a material transparent in Godot 4, set <code>Transparency</code> to <code>Alpha</code> in the StandardMaterial3D, or use a shader with <code>render_mode blend_mix</code>. Without this, transparency won't render correctly.</div></div>
+          <div class="scene-card animate-on-enter delay-3">
+            <div class="scene-card-header">
+              <span class="scene-icon">🟥</span>
+              <span class="scene-filename">scenes/ItemCrate.tscn</span>
+              <span class="scene-root">Updated: plain box → rounded cube with bounce</span>
+            </div>
+            <div class="scene-body">
+              <div class="node-tree">
+                <span class="node-line"><span class="node-name">ItemCrate</span> <span class="node-type">: Node3D</span></span>
+                <span class="node-line depth-1"><span class="node-name">Mesh</span> <span class="node-type">: MeshInstance3D</span> <span class="node-desc">&mdash; BoxMesh with corner radius bevel, or rounded CSG shape</span></span>
+                <span class="node-line depth-1"><span class="node-name">AnimationPlayer</span> <span class="node-type">: AnimationPlayer</span> <span class="node-desc">&mdash; "bounce" animation: scale.y 1.0→1.15→1.0 over 0.16s</span></span>
+              </div>
+              <p>The bounce plays on every cell arrival — it's triggered at the end of the movement tween in <code>_on_tick()</code>. The AnimationPlayer is separate from the tween so the tween handles position and the AnimationPlayer handles scale. See <strong>Appendix I</strong> for the bounce code.</p>
+              <div class="warn"><span class="warn-icon">⚠️</span> <div>Godot 4's <code>BoxMesh</code> has no built-in corner radius. For a softer look, use a <code>CylinderMesh</code> scaled flat (it gives a puck shape), or import a simple rounded cube from Blender as a .glb. Don't spend more than 30 minutes on the crate model — it's a tiny detail.</div></div>
+            </div>
+          </div>
 
-          <h4 class="animate-on-enter delay-4">Camera Tween Polish</h4>
-          <p class="animate-on-enter delay-4">Instead of snapping instantly between the 4 camera angles, tween the camera pivot's Y rotation over 0.3 seconds using <code>create_tween().tween_property()</code>. This requires the pivot <code>Node3D</code> approach from Sprint 2. Add a subtle camera sway: during Rush Hour, apply a very small sinusoidal offset to the camera's Y position (amplitude 0.05, frequency matching the tick rate) to give a "kitchen is alive" feel.</p>
+          <div class="scene-card animate-on-enter delay-3">
+            <div class="scene-card-header">
+              <span class="scene-icon">🧊</span>
+              <span class="scene-filename">scenes/ObstacleBlock.tscn</span>
+              <span class="scene-root">Root: Node3D (new scene)</span>
+            </div>
+            <div class="scene-body">
+              <p>A new scene for immovable obstacle cells (used in Levels 4 and 5). Create this scene now even though it was previously just a coloured box spawned procedurally.</p>
+              <div class="node-tree">
+                <span class="node-line"><span class="node-name">ObstacleBlock</span> <span class="node-type">: Node3D</span></span>
+                <span class="node-line depth-1"><span class="node-name">FreezeMesh</span> <span class="node-type">: MeshInstance3D</span> <span class="node-desc">&mdash; box slightly taller than 1 unit, cool blue material</span></span>
+                <span class="node-line depth-1"><span class="node-name">DoorLine</span> <span class="node-type">: MeshInstance3D</span> <span class="node-desc">&mdash; thin dark lines suggesting a freezer door panel</span></span>
+              </div>
+              <p>Update <code>GridManager.gd</code>: when spawning obstacles from <code>LevelConfig.obstacle_cells</code>, instantiate <code>ObstacleBlock.tscn</code> instead of a raw BoxMesh. The logic stays identical.</p>
+            </div>
+          </div>
+
+          <h4 class="animate-on-enter delay-3">Floor Tile Replacement</h4>
+          <p class="animate-on-enter delay-3">The flat ground plane should be replaced with individual 1m×1m tile meshes spawned by <code>GridManager.gd</code> at startup. Create a simple floor tile mesh — a thin <code>BoxMesh</code> (1.0 × 0.05 × 1.0) with either a white material or a checkerboard texture. In <code>GridManager._ready()</code>, loop over all valid cells and spawn one floor tile per cell at Y = -0.025 (so the top surface sits flush at Y=0). This gives the kitchen a grid-pattern floor without any code changes to the game logic.</p>
+
+          <h3 class="animate-on-enter delay-4">Week 11 — Ghost Shader, Camera Polish &amp; UI Theme</h3>
+
+          <div class="scene-card animate-on-enter delay-4">
+            <div class="scene-card-header">
+              <span class="scene-icon">🌐</span>
+              <span class="scene-filename">assets/shaders/ghost_tile.gdshader</span>
+              <span class="scene-root">New file: Spatial Shader</span>
+            </div>
+            <div class="scene-body">
+              <p>The ghost tile in <code>PlacementController.tscn</code> currently uses a plain translucent material. Replace it with a custom shader that adds a pulsing cyan rim effect. The shader applies to the GhostTile's <code>MeshInstance3D</code> as a material override.</p>
+              <p>Create the file at <code>assets/shaders/ghost_tile.gdshader</code>. In the Inspector, create a new <code>ShaderMaterial</code> on the GhostTile MeshInstance3D and point it at this shader. See <strong>Appendix J</strong> for the shader source.</p>
+              <div class="warn"><span class="warn-icon">⚠️</span> <div>To enable transparency in a Godot 4 spatial shader, the first line must be <code>render_mode blend_mix;</code>. Without this, the ALPHA output is ignored and the mesh renders fully opaque.</div></div>
+            </div>
+          </div>
+
+          <div class="scene-card animate-on-enter delay-4">
+            <div class="scene-card-header">
+              <span class="scene-icon">🎥</span>
+              <span class="scene-filename">scenes/GameWorld.tscn</span>
+              <span class="scene-root">Updated: add CameraPivot node</span>
+            </div>
+            <div class="scene-body">
+              <p>Upgrade the camera rotation from Sprint 2's instant snap to a smooth tween. The key architectural change: the <code>Camera3D</code> must be a child of a <code>Node3D</code> pivot centred on the grid, not a direct child of <code>GameWorld</code>.</p>
+              <div class="node-tree">
+                <span class="node-line"><span class="node-name">GameWorld</span> <span class="node-type">: Node3D</span></span>
+                <span class="node-line depth-1"><span class="node-name">CameraPivot</span> <span class="node-type">: Node3D</span> <span class="node-desc">&mdash; positioned at grid centre (e.g. Vector3(4,0,4) for 8×8)</span></span>
+                <span class="node-line depth-2"><span class="node-name">Camera3D</span> <span class="node-type">: Camera3D</span> <span class="node-desc">&mdash; offset from pivot: position (0, 10, 8), rotation (-45°, 0, 0)</span></span>
+                <span class="node-line depth-1"><span class="node-name">GridManager</span> <span class="node-type">: Node3D</span></span>
+                <span class="node-line depth-1"><span class="node-name">PlacementController</span> <span class="node-type">: Node3D</span></span>
+                <span class="node-line depth-1"><span class="node-name">JamParticles</span> <span class="node-type">: GPUParticles3D</span> <span class="node-desc">&mdash; added Week 12</span></span>
+                <span class="node-line depth-1"><span class="node-name">DeliveryParticles</span> <span class="node-type">: GPUParticles3D</span> <span class="node-desc">&mdash; added Week 12</span></span>
+                <span class="node-line depth-1"><span class="node-name">HUD</span> <span class="node-type">: CanvasLayer</span></span>
+              </div>
+              <p>Rotating <code>CameraPivot.rotation.y</code> now orbits the camera around the grid. Update the mouse-wheel code from Sprint 2 to tween this value instead of snapping. Also update <code>PlacementController</code> — it needs to project rays from <em>the Camera3D</em>, which is now a child of the pivot. Pass the camera reference as an <code>@export</code> variable. See <strong>Appendix H</strong> for the tween code.</p>
+              <div class="warn"><span class="warn-icon">⚠️</span> <div>After moving Camera3D under CameraPivot, the <code>PlacementController</code>'s exported <code>camera</code> reference may become invalid. Re-assign it in the Inspector. Also check that <code>get_viewport().get_mouse_position()</code> still works correctly from the new camera position — it should, but test it.</div></div>
+            </div>
+          </div>
+
+          <h4 class="animate-on-enter delay-4">Camera Sway (Optional Polish)</h4>
+          <p class="animate-on-enter delay-4">During Rush Hour, apply a very gentle sinusoidal offset to <code>Camera3D.position.y</code> (amplitude 0.05, frequency matching tick rate) to give a subtle "kitchen is alive" feel. This is purely cosmetic and should be the last thing you implement this week — only add it if everything else works perfectly.</p>
 
           <h3 class="animate-on-enter delay-5">Week 12 — Visual Effects &amp; UI Styling</h3>
 
-          <h4 class="animate-on-enter delay-5">Jam Particle Effect</h4>
-          <p class="animate-on-enter delay-5">Add a <code>GPUParticles3D</code> node to <code>GameWorld.tscn</code> called <code>JamParticles</code>. Configure it with a small spark burst (red particles, short lifetime, burst emission). On the <code>jam_occurred(cell)</code> signal: move <code>JamParticles</code> to the jammed cell's world position, call <code>restart()</code>. See <strong>Appendix K</strong> for particle settings.</p>
+          <div class="scene-card animate-on-enter delay-5">
+            <div class="scene-card-header">
+              <span class="scene-icon">💥</span>
+              <span class="scene-filename">scenes/GameWorld.tscn</span>
+              <span class="scene-root">Updated: add GPUParticles3D nodes</span>
+            </div>
+            <div class="scene-body">
+              <p>Add two <code>GPUParticles3D</code> nodes directly to <code>GameWorld.tscn</code>. They live at world position (0,0,0) and are teleported to the target cell when triggered.</p>
+              <div class="node-tree">
+                <span class="node-line"><span class="node-name">JamParticles</span> <span class="node-type">: GPUParticles3D</span> <span class="node-desc">&mdash; red spark burst at jam location</span></span>
+                <span class="node-line"><span class="node-name">DeliveryParticles</span> <span class="node-type">: GPUParticles3D</span> <span class="node-desc">&mdash; white smoke puff at sink</span></span>
+              </div>
 
-          <h4 class="animate-on-enter delay-5">Delivery Poof Effect</h4>
-          <p class="animate-on-enter delay-5">Similarly, add <code>DeliveryParticles</code> (white smoke puff, 8 particles, short lifetime) to <code>GameWorld.tscn</code>. Trigger it on <code>item_delivered</code> signal at the SinkNode's position.</p>
+              <h4>JamParticles Configuration</h4>
+              <p>In the Inspector for <code>JamParticles</code>: set <code>Emitting = false</code> (starts off), <code>Amount = 16</code>, <code>Lifetime = 0.4</code>, <code>One Shot = true</code>, <code>Explosiveness = 0.9</code>. Under <code>Process Material</code>, create a new <code>ParticleProcessMaterial</code>: Direction = Vector3(0,1,0), Spread = 60°, Initial Velocity Min/Max = 2.0/4.0, Scale Min/Max = 0.05/0.1, Color = #FF4444. See <strong>Appendix K</strong> for trigger code.</p>
 
-          <h4 class="animate-on-enter delay-5">UI Styling</h4>
-          <p class="animate-on-enter delay-5">Style the HUD and MainMenu using a <code>Theme</code> resource. Apply a clean industrial aesthetic: dark backgrounds, bright accent colours (use the item type colours), monospaced font for the timer. Import a free pixel or industrial font (e.g. from Google Fonts or itch.io) for the title. Apply the theme to <code>MainMenu.tscn</code> and <code>HUD.tscn</code>.</p>
-          <p class="animate-on-enter delay-5">Style the ResultScreen: large grade label (GOLD in yellow, BRONZE in brown, FAILED in red). Add a subtle background panel with a dark translucent material.</p>
+              <h4>DeliveryParticles Configuration</h4>
+              <p>Same approach: <code>Amount = 8</code>, <code>Lifetime = 0.6</code>, <code>One Shot = true</code>, <code>Explosiveness = 0.85</code>. Color = white, Scale Min/Max = 0.08/0.15, Spread = 80°. Triggered by the <code>item_delivered</code> signal.</p>
+
+              <div class="warn"><span class="warn-icon">⚠️</span> <div><code>GPUParticles3D.restart()</code> does not work unless <code>Emitting</code> is set to <code>true</code> first. The pattern is: set position, set <code>emitting = true</code>, call <code>restart()</code>. One-shot particles automatically stop after their lifetime expires.</div></div>
+            </div>
+          </div>
+
+          <div class="scene-card animate-on-enter delay-5">
+            <div class="scene-card-header">
+              <span class="scene-icon">🎨</span>
+              <span class="scene-filename">assets/theme.tres</span>
+              <span class="scene-root">New: Godot Theme Resource</span>
+            </div>
+            <div class="scene-body">
+              <p>Create a <code>Theme</code> resource to unify all UI styling. In the FileSystem, right-click → New Resource → Theme → save as <code>assets/theme.tres</code>. Assign it to the root <code>Control</code> node of both <code>HUD.tscn</code> and <code>MainMenu.tscn</code> — all child nodes inherit it automatically.</p>
+              <p>Suggested style targets: <strong>Label</strong> — import a free pixel/industrial font (e.g. "Share Tech Mono" from Google Fonts), set default color to #E0E0E0. <strong>Button</strong> — dark background (#1A1A1A), bright accent border (#0088FF), hover colour #002244. <strong>Panel</strong> — near-black background with slight transparency.</p>
+              <p>Style the <strong>ResultScreen</strong> separately: the grade label should be large (font size 64+) and coloured: GOLD = #FFD700, SILVER = #C0C0C0, BRONZE = #CD7F32, FAILED = #FF4444.</p>
+            </div>
+          </div>
+
+          <div class="scene-card animate-on-enter delay-5">
+            <div class="scene-card-header">
+              <span class="scene-icon">🏠</span>
+              <span class="scene-filename">scenes/MainMenu.tscn</span>
+              <span class="scene-root">Updated: apply styling + add LevelSelect button</span>
+            </div>
+            <div class="scene-body">
+              <div class="node-tree">
+                <span class="node-line"><span class="node-name">MainMenu</span> <span class="node-type">: Control</span></span>
+                <span class="node-line depth-1"><span class="node-name">Background</span> <span class="node-type">: ColorRect</span> <span class="node-desc">&mdash; near-black fill, alpha 0.95</span></span>
+                <span class="node-line depth-1"><span class="node-name">VBox</span> <span class="node-type">: VBoxContainer</span> <span class="node-desc">&mdash; centred on screen</span></span>
+                <span class="node-line depth-2"><span class="node-name">TitleLabel</span> <span class="node-type">: Label</span> <span class="node-desc">&mdash; "CONVEYOR KITCHEN", large industrial font</span></span>
+                <span class="node-line depth-2"><span class="node-name">StartButton</span> <span class="node-type">: Button</span> <span class="node-desc">&mdash; "START CAMPAIGN"</span></span>
+                <span class="node-line depth-2"><span class="node-name">SandboxButton</span> <span class="node-type">: Button</span> <span class="node-desc">&mdash; "SANDBOX" — disabled if !sandbox_unlocked</span></span>
+                <span class="node-line depth-2"><span class="node-name">QuitButton</span> <span class="node-type">: Button</span> <span class="node-desc">&mdash; "QUIT"</span></span>
+              </div>
+              <p>Update the main menu script: in <code>_ready()</code>, load <code>SaveData</code> and set <code>SandboxButton.disabled = !save_data.sandbox_unlocked</code>. This gates Sandbox Mode until all 5 levels are completed (handled properly in Sprint 4).</p>
+            </div>
+          </div>
 
           <div class="test-box animate-on-enter delay-6">
             <h4>🧪 Sprint 3 — Testing Phase</h4>
@@ -1542,27 +2111,48 @@
           </div>
 
           <h4 class="animate-on-enter">Sprint 3 Checklist</h4>
-          <ul class="checklist animate-on-enter">
-            <li><span class="checkbox"></span><span class="item-text">ConveyorTile uses 3D model with animated rollers</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Corner conveyor tile model (mirrored/rotated variant)</span></li>
-            <li><span class="checkbox"></span><span class="item-text">SourceNode uses hopper model with item type label</span></li>
-            <li><span class="checkbox"></span><span class="item-text">SinkNode uses receptacle model with type label</span></li>
-            <li><span class="checkbox"></span><span class="item-text">ItemCrate uses rounded cube with bounce animation</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Obstacle uses freezer model</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Floor tiles replace flat ground plane</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Ghost tile uses custom transparent shader</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Camera rotation is tweened</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Jam particle burst implemented</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Delivery poof particle implemented</span></li>
-            <li><span class="checkbox"></span><span class="item-text">HUD and MainMenu styled with Theme resource</span></li>
-          </ul>
+          <div class="checklist-wrapper animate-on-enter" data-checklist="sprint3">
+            <div class="checklist-progress">
+              <div class="checklist-progress-bar"></div>
+            </div>
+            <div class="checklist-stats">
+              <span><span class="count">0</span><span class="separator">/</span><span class="total">15</span> completed</span>
+              <span class="checklist-badge"><svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>ALL DONE</span>
+            </div>
+            <ul class="checklist animate-in">
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">ConveyorTile uses 3D model with animated rollers</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Corner conveyor tile scene (ConveyorCorner.tscn) created</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">SourceNode uses hopper model with Label3D item type icon</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">SinkNode uses receptacle model with red trim and Label3D</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">ItemCrate uses rounded cube with bounce animation</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">ObstacleBlock.tscn created with freezer model</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Floor tiles replace flat ground plane</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Ghost tile uses custom transparent shader (ghost_tile.gdshader)</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">CameraPivot node added; camera rotation smoothly tweened</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">JamParticles (red spark burst) implemented and wired to jam_occurred</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">DeliveryParticles (white poof) implemented and wired to item_delivered</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">theme.tres created and applied to HUD, MainMenu, ResultScreen</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">MainMenu SandboxButton shows disabled lock state</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">All assets replaced — no BoxMesh placeholders remain</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Game runs at 60fps with all visual upgrades in editor</span></li>
+            </ul>
+          </div>
 
           <h4 class="animate-on-enter">Sprint 3 Milestone Checklist</h4>
-          <ul class="checklist milestone animate-on-enter">
-            <li><span class="checkbox"></span><span class="item-text">A screenshot of the game is indistinguishable from a prototype (not a grey-box)</span></li>
-            <li><span class="checkbox"></span><span class="item-text">The conveyor belt animation gives the grid a rhythmic, "alive" quality</span></li>
-            <li><span class="checkbox"></span><span class="item-text">All 5 levels still function correctly with new assets</span></li>
-          </ul>
+          <div class="checklist-wrapper animate-on-enter" data-checklist="sprint3-milestone">
+            <div class="checklist-progress">
+              <div class="checklist-progress-bar"></div>
+            </div>
+            <div class="checklist-stats">
+              <span><span class="count">0</span><span class="separator">/</span><span class="total">3</span> completed</span>
+              <span class="checklist-badge"><svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>ALL DONE</span>
+            </div>
+            <ul class="checklist milestone animate-in">
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">A screenshot of the game is indistinguishable from a prototype (not a grey-box)</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">The conveyor belt animation gives the grid a rhythmic, "alive" quality</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">All 5 levels still function correctly with new assets</span></li>
+            </ul>
+          </div>
 
           <div class="trello-box animate-on-enter">
             <h4>📋 Trello Documentation — Sprint 3</h4>
@@ -1691,28 +2281,46 @@
           </div>
 
           <h4 class="animate-on-enter">Sprint 4 Checklist</h4>
-          <ul class="checklist animate-on-enter">
-            <li><span class="checkbox"></span><span class="item-text">AudioManager autoload handles all SFX and music</span></li>
-            <li><span class="checkbox"></span><span class="item-text">All 6 audio assets sourced and imported</span></li>
-            <li><span class="checkbox"></span><span class="item-text">All SFX wired to correct game events</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Ambient loop plays from game start</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Sandbox mode implemented with 20×20 grid and randomized sources/sinks</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Sandbox unlock gated by campaign completion</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Save data persists between sessions</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Scrolling arrow UV shader on conveyor belt</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Full bug-fix pass completed (bug log cleared of P1/P2 issues)</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Final build exported and tested outside the editor</span></li>
-          </ul>
+          <div class="checklist-wrapper animate-on-enter" data-checklist="sprint4">
+            <div class="checklist-progress">
+              <div class="checklist-progress-bar"></div>
+            </div>
+            <div class="checklist-stats">
+              <span><span class="count">0</span><span class="separator">/</span><span class="total">10</span> completed</span>
+              <span class="checklist-badge"><svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>ALL DONE</span>
+            </div>
+            <ul class="checklist animate-in">
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">AudioManager autoload handles all SFX and music</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">All 6 audio assets sourced and imported</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">All SFX wired to correct game events</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Ambient loop plays from game start</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Sandbox mode implemented with 20×20 grid and randomized sources/sinks</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Sandbox unlock gated by campaign completion</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Save data persists between sessions</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Scrolling arrow UV shader on conveyor belt</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Full bug-fix pass completed (bug log cleared of P1/P2 issues)</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Final build exported and tested outside the editor</span></li>
+            </ul>
+          </div>
 
           <h4 class="animate-on-enter">Sprint 4 Milestone Checklist — Final Submission</h4>
-          <ul class="checklist milestone animate-on-enter">
-            <li><span class="checkbox"></span><span class="item-text">Game runs from start to finish with no crashes</span></li>
-            <li><span class="checkbox"></span><span class="item-text">All 5 campaign levels are completable and correctly graded</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Audio enhances every key game moment</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Sandbox mode is functional and replayable</span></li>
-            <li><span class="checkbox"></span><span class="item-text">Exported build submitted / uploaded to itch.io or equivalent</span></li>
-            <li><span class="checkbox"></span><span class="item-text">GitHub repository is up to date with final commit tagged <code>v1.0</code></span></li>
-          </ul>
+          <div class="checklist-wrapper animate-on-enter" data-checklist="sprint4-milestone">
+            <div class="checklist-progress">
+              <div class="checklist-progress-bar"></div>
+            </div>
+            <div class="checklist-stats">
+              <span><span class="count">0</span><span class="separator">/</span><span class="total">6</span> completed</span>
+              <span class="checklist-badge"><svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>ALL DONE</span>
+            </div>
+            <ul class="checklist milestone animate-in">
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Game runs from start to finish with no crashes</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">All 5 campaign levels are completable and correctly graded</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Audio enhances every key game moment</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Sandbox mode is functional and replayable</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">Exported build submitted / uploaded to itch.io or equivalent</span></li>
+              <li><span class="checkbox"><span class="checkbox-outer"></span><span class="checkbox-inner"></span><span class="checkmark"><svg viewBox="0 0 24 24"><path class="check-path" d="M20 6L9 17L4 12"/></svg></span><span class="glow"></span></span><span class="item-text">GitHub repository is up to date with final commit tagged <code>v1.0</code></span></li>
+            </ul>
+          </div>
 
           <div class="trello-box animate-on-enter">
             <h4>📋 Trello Documentation — Sprint 4</h4>
@@ -2152,6 +2760,119 @@ uniform <span class="kw">float</span> scroll_speed = <span class="num">1.0</span
     <span class="kw">return</span> SaveData.new()</pre>
         </div>
 
+        <div class="appendix-card animate-on-enter">
+          <div class="appendix-label g">Appendix N — LevelSelect &amp; Scene Loading Pattern</div>
+          <pre class="code-block"><span class="cm"># scripts/LevelSelect.gd
+# How to load a level by index and pass config to GameWorld</span>
+<span class="kw">extends</span> Control
+
+<span class="kw">const</span> LEVEL_CONFIGS = [
+    <span class="st">"res://levels/level_01.tres"</span>,
+    <span class="st">"res://levels/level_02.tres"</span>,
+    <span class="st">"res://levels/level_03.tres"</span>,
+    <span class="st">"res://levels/level_04.tres"</span>,
+    <span class="st">"res://levels/level_05.tres"</span>,
+]
+<span class="kw">const</span> GAME_WORLD_SCENE = <span class="st">"res://scenes/GameWorld.tscn"</span>
+
+<span class="kw">func</span> <span class="fn">_ready</span>() -> <span class="kw">void</span>:
+    <span class="kw">var</span> save_data = _load_save()
+    <span class="kw">for</span> i <span class="kw">in</span> range(<span class="num">5</span>):
+        <span class="kw">var</span> btn = get_node(<span class="st">"LevelGrid/Level%dButton"</span> % (i + <span class="num">1</span>))
+        <span class="kw">if</span> save_data.levels_completed[i]:
+            btn.text = <span class="st">"Level %d ✓"</span> % (i + <span class="num">1</span>)
+
+<span class="kw">func</span> <span class="fn">load_level</span>(index: <span class="kw">int</span>) -> <span class="kw">void</span>:
+    <span class="kw">var</span> config = ResourceLoader.load(LEVEL_CONFIGS[index]) <span class="kw">as</span> LevelConfig
+    GameManager.current_config = config
+    GameManager.is_sandbox = <span class="kw">false</span>
+    get_tree().change_scene_to_file(GAME_WORLD_SCENE)
+
+<span class="kw">func</span> <span class="fn">_load_save</span>() -> SaveData:
+    <span class="kw">const</span> PATH = <span class="st">"user://save.tres"</span>
+    <span class="kw">if</span> ResourceLoader.exists(PATH): <span class="kw">return</span> ResourceLoader.load(PATH) <span class="kw">as</span> SaveData
+    <span class="kw">return</span> SaveData.new()
+
+<span class="cm"># In GameWorld.gd — read config from GameManager on _ready():</span>
+<span class="kw">func</span> <span class="fn">_ready</span>() -> <span class="kw">void</span>:
+    <span class="kw">var</span> config: LevelConfig = GameManager.current_config
+    $GridManager.grid_size = config.grid_size
+    GameManager.quota = config.quota
+    GameManager.time_remaining = config.time_limit
+    GameManager.tiles_available = config.tile_budget
+    GameManager.tick_rate = config.tick_rate
+    <span class="cm"># Spawn obstacles</span>
+    <span class="kw">for</span> cell <span class="kw">in</span> config.obstacle_cells:
+        $GridManager.spawn_obstacle(cell)
+    <span class="cm"># Spawn sources and sinks from config arrays</span>
+    <span class="kw">for</span> src_cfg <span class="kw">in</span> config.source_configs:
+        _spawn_source(src_cfg[<span class="st">"cell"</span>], src_cfg[<span class="st">"type"</span>], src_cfg[<span class="st">"direction"</span>])
+    <span class="kw">for</span> snk_cfg <span class="kw">in</span> config.sink_configs:
+        _spawn_sink(snk_cfg[<span class="st">"cell"</span>], snk_cfg[<span class="st">"type"</span>])</pre>
+        </div>
+
+        <div class="appendix-card animate-on-enter">
+          <div class="appendix-label">Appendix O — Win/Lose Flow &amp; Grade Calculation</div>
+          <pre class="code-block"><span class="cm"># In GameManager.gd — level completion and grading</span>
+<span class="kw">signal</span> level_complete(grade: <span class="kw">int</span>)   <span class="cm"># 1=Bronze 2=Silver 3=Gold</span>
+
+<span class="kw">func</span> <span class="fn">_level_complete</span>() -> <span class="kw">void</span>:
+    toggle_phase()   <span class="cm"># stop the rush hour clock</span>
+    <span class="kw">var</span> grade = <span class="num">1</span>   <span class="cm"># default Bronze</span>
+    <span class="kw">if</span> time_remaining >= <span class="num">30.0</span>:
+        grade = <span class="num">2</span>   <span class="cm"># Silver</span>
+    <span class="kw">if</span> time_remaining >= <span class="num">30.0</span> <span class="kw">and</span> tiles_used < tiles_available / <span class="num">2</span>:
+        grade = <span class="num">3</span>   <span class="cm"># Gold</span>
+    level_complete.emit(grade)
+
+<span class="cm"># In GameWorld.gd — handling level_complete</span>
+<span class="kw">func</span> <span class="fn">_on_level_complete</span>(grade: <span class="kw">int</span>) -> <span class="kw">void</span>:
+    <span class="cm"># Save progress</span>
+    <span class="kw">var</span> save_data = _load_save()
+    <span class="kw">var</span> level_index = GameManager.current_config.level_index  <span class="cm"># add this @export int to LevelConfig</span>
+    save_data.levels_completed[level_index] = <span class="kw">true</span>
+    save_data.level_grades[level_index] = max(save_data.level_grades[level_index], grade)
+    <span class="kw">if</span> save_data.levels_completed.all(<span class="kw">func</span>(x): <span class="kw">return</span> x):
+        save_data.sandbox_unlocked = <span class="kw">true</span>
+    ResourceSaver.save(save_data, <span class="st">"user://save.tres"</span>)
+    <span class="cm"># Show result screen</span>
+    $ResultScreen.show_result(grade, GameManager.score, GameManager.deliveries,
+        GameManager.time_remaining, GameManager.tiles_used)
+    $ResultScreen.visible = <span class="kw">true</span>
+
+<span class="cm"># In ResultScreen.gd</span>
+<span class="kw">func</span> <span class="fn">show_result</span>(grade: <span class="kw">int</span>, score: <span class="kw">int</span>, deliveries: <span class="kw">int</span>, time_left: <span class="kw">float</span>, tiles: <span class="kw">int</span>) -> <span class="kw">void</span>:
+    <span class="kw">var</span> grade_names = [<span class="st">""</span>, <span class="st">"BRONZE"</span>, <span class="st">"SILVER"</span>, <span class="st">"GOLD"</span>]
+    <span class="kw">var</span> grade_colors = [Color.WHITE, Color(<span class="num">0.8</span>,<span class="num">0.5</span>,<span class="num">0.2</span>), Color(<span class="num">0.75</span>,<span class="num">0.75</span>,<span class="num">0.75</span>), Color(<span class="num">1.0</span>,<span class="num">0.84</span>,<span class="num">0.0</span>)]
+    $Panel/GradeLabel.text = grade_names[grade]
+    $Panel/GradeLabel.add_theme_color_override(<span class="st">"font_color"</span>, grade_colors[grade])
+    $Panel/ScoreLabel.text = <span class="st">"Score: %d"</span> % score
+    $Panel/StatsLabel.text = <span class="st">"%d delivered  |  %.0fs left  |  %d tiles used"</span> % [deliveries, time_left, tiles]</pre>
+        </div>
+
+        <div class="appendix-card animate-on-enter">
+          <div class="appendix-label b">Appendix P — Input Map Setup</div>
+          <pre class="code-block"><span class="cm"># Project Settings → Input Map — create these actions:</span>
+<span class="cm"># Action name        →  Key binding</span>
+<span class="cm"># "place_tile"       →  Mouse Left Button</span>
+<span class="cm"># "remove_tile"      →  Mouse Right Button</span>
+<span class="cm"># "rotate_tile"      →  R</span>
+<span class="cm"># "toggle_phase"     →  Space</span>
+<span class="cm"># "tile_type_1"      →  Key 1</span>
+<span class="cm"># "tile_type_2"      →  Key 2</span>
+<span class="cm"># "tile_type_3"      →  Key 3</span>
+
+<span class="cm"># In GameWorld.gd — handle Spacebar toggle</span>
+<span class="kw">func</span> <span class="fn">_unhandled_input</span>(event: InputEvent) -> <span class="kw">void</span>:
+    <span class="kw">if</span> event.is_action_just_pressed(<span class="st">"toggle_phase"</span>):
+        GameManager.toggle_phase()
+    <span class="cm"># Camera rotation lives here too (see Appendix H)</span>
+
+<span class="cm"># NOTE: Use _unhandled_input for game actions so that UI buttons</span>
+<span class="cm"># (which use _gui_input) don't accidentally also trigger game controls.</span>
+<span class="cm"># PlacementController should also use _unhandled_input for LMB/RMB.</span></pre>
+        </div>
+
         <div style="height: 100px;"></div>
       </section>
     </div>
@@ -2160,6 +2881,93 @@ uniform <span class="kw">float</span> scroll_speed = <span class="num">1.0</span
 </div>
 
 <script>
+  // Confetti system
+  const confettiCanvas = document.getElementById('confetti-canvas');
+  const confettiCtx = confettiCanvas.getContext('2d');
+  let confettiPieces = [];
+  let confettiAnimating = false;
+
+  function resizeConfettiCanvas() {
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+  }
+  resizeConfettiCanvas();
+  window.addEventListener('resize', resizeConfettiCanvas);
+
+  class ConfettiPiece {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.size = Math.random() * 8 + 4;
+      this.speedX = (Math.random() - 0.5) * 15;
+      this.speedY = Math.random() * -15 - 5;
+      this.gravity = 0.5;
+      this.rotation = Math.random() * 360;
+      this.rotationSpeed = (Math.random() - 0.5) * 15;
+      this.opacity = 1;
+      this.colors = ['#00ff88', '#00ccff', '#ff00c1', '#ffd700', '#66ccff', '#0088ff'];
+      this.color = this.colors[Math.floor(Math.random() * this.colors.length)];
+      this.shape = Math.random() > 0.5 ? 'rect' : 'circle';
+    }
+
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      this.speedY += this.gravity;
+      this.rotation += this.rotationSpeed;
+      this.opacity -= 0.015;
+      this.speedX *= 0.99;
+    }
+
+    draw(ctx) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.rotation * Math.PI / 180);
+      ctx.globalAlpha = this.opacity;
+      ctx.fillStyle = this.color;
+      
+      if (this.shape === 'rect') {
+        ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size / 2);
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      ctx.restore();
+    }
+  }
+
+  function createConfetti(x, y, count = 50) {
+    for (let i = 0; i < count; i++) {
+      confettiPieces.push(new ConfettiPiece(
+        x + (Math.random() - 0.5) * 100,
+        y + (Math.random() - 0.5) * 50
+      ));
+    }
+    if (!confettiAnimating) {
+      confettiAnimating = true;
+      animateConfetti();
+    }
+  }
+
+  function animateConfetti() {
+    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    
+    confettiPieces = confettiPieces.filter(piece => piece.opacity > 0);
+    
+    confettiPieces.forEach(piece => {
+      piece.update();
+      piece.draw(confettiCtx);
+    });
+    
+    if (confettiPieces.length > 0) {
+      requestAnimationFrame(animateConfetti);
+    } else {
+      confettiAnimating = false;
+    }
+  }
+
   // Remove loader after init
   window.addEventListener('load', () => {
     setTimeout(() => {
@@ -2195,6 +3003,9 @@ uniform <span class="kw">float</span> scroll_speed = <span class="num">1.0</span
       newEl.classList.add('active');
       
       currentPage = pageId;
+      
+      // Reinitialize checklists for animation
+      setTimeout(() => initChecklists(), 100);
     }, 400);
   }
 
@@ -2217,79 +3028,151 @@ uniform <span class="kw">float</span> scroll_speed = <span class="num">1.0</span
     }
   });
 
-  // ===== CLICKABLE CHECKLIST FUNCTIONALITY =====
+  // ===== ENHANCED CLICKABLE CHECKLIST =====
   
-  // Load saved state from localStorage
   function loadChecklistState() {
     const saved = localStorage.getItem('checklistState');
     return saved ? JSON.parse(saved) : {};
   }
 
-  // Save state to localStorage
   function saveChecklistState(state) {
     localStorage.setItem('checklistState', JSON.stringify(state));
   }
 
-  // Initialize checklists with click functionality
+  function updateChecklistProgress(wrapper) {
+    const items = wrapper.querySelectorAll('.checklist li');
+    const checked = wrapper.querySelectorAll('.checklist li.checked');
+    const progressBar = wrapper.querySelector('.checklist-progress-bar');
+    const countEl = wrapper.querySelector('.checklist-stats .count');
+    const badge = wrapper.querySelector('.checklist-badge');
+    const total = items.length;
+    const completed = checked.length;
+    const percent = (completed / total) * 100;
+    
+    if (progressBar) {
+      progressBar.style.width = percent + '%';
+    }
+    
+    if (countEl) {
+      countEl.textContent = completed;
+    }
+    
+    if (badge && completed === total) {
+      badge.classList.add('visible');
+      wrapper.classList.add('celebrating');
+      setTimeout(() => wrapper.classList.remove('celebrating'), 1000);
+    } else if (badge) {
+      badge.classList.remove('visible');
+    }
+  }
+
+  function createRipple(li) {
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    const rect = li.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = '50%';
+    ripple.style.top = '50%';
+    ripple.style.marginLeft = -size / 2 + 'px';
+    ripple.style.marginTop = -size / 2 + 'px';
+    li.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  }
+
   function initChecklists() {
-    const checklistItems = document.querySelectorAll('.checklist li');
+    const wrappers = document.querySelectorAll('.checklist-wrapper');
     const savedState = loadChecklistState();
 
-    checklistItems.forEach((item, index) => {
-      const checkbox = item.querySelector('.checkbox');
-      if (!checkbox) return;
+    wrappers.forEach(wrapper => {
+      const checklistId = wrapper.dataset.checklist || 'default';
+      const items = wrapper.querySelectorAll('.checklist li');
+      
+      // Reset animations by removing and re-adding class
+      const list = wrapper.querySelector('.checklist');
+      list.classList.remove('animate-in');
+      void list.offsetWidth;
+      list.classList.add('animate-in');
 
-      // Generate a unique ID for this checkbox based on its text content
-      const textEl = item.querySelector('.item-text');
-      const textContent = textEl ? textEl.textContent.trim().substring(0, 50) : `item-${index}`;
-      const itemId = textContent.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 30);
+      items.forEach((item, index) => {
+        const checkbox = item.querySelector('.checkbox');
+        if (!checkbox) return;
 
-      // Apply saved state
-      if (savedState[itemId]) {
-        checkbox.classList.add('checked');
-        item.classList.add('checked');
-      }
+        const textEl = item.querySelector('.item-text');
+        const textContent = textEl ? textEl.textContent.trim().substring(0, 50) : `item-${index}`;
+        const itemId = `${checklistId}-${textContent.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 30)}`;
 
-      // Click handler
-      item.addEventListener('click', (e) => {
-        // Don't toggle if clicking on a link or code element
-        if (e.target.tagName === 'A' || e.target.tagName === 'CODE') return;
-
-        checkbox.classList.toggle('checked');
-        item.classList.toggle('checked');
-
-        // Update saved state
-        const currentState = loadChecklistState();
-        if (checkbox.classList.contains('checked')) {
-          currentState[itemId] = true;
+        // Apply saved state
+        if (savedState[itemId]) {
+          checkbox.classList.add('checked');
+          item.classList.add('checked');
+          item.setAttribute('aria-checked', 'true');
         } else {
-          delete currentState[itemId];
+          checkbox.classList.remove('checked');
+          item.classList.remove('checked');
+          item.setAttribute('aria-checked', 'false');
         }
-        saveChecklistState(currentState);
 
-        // Add a subtle animation effect
-        item.style.transform = 'scale(1.02)';
-        setTimeout(() => {
-          item.style.transform = '';
-        }, 150);
+        // Remove existing listeners by cloning
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+
+        const newCheckbox = newItem.querySelector('.checkbox');
+
+        // Click handler
+        newItem.addEventListener('click', (e) => {
+          if (e.target.tagName === 'CODE' || e.target.closest('code')) return;
+
+          createRipple(newItem);
+
+          const isChecked = newCheckbox.classList.toggle('checked');
+          newItem.classList.toggle('checked');
+          newItem.setAttribute('aria-checked', isChecked);
+
+          // Scale animation
+          newItem.style.transform = 'scale(1.02)';
+          setTimeout(() => {
+            newItem.style.transform = '';
+          }, 150);
+
+          // Update state
+          const currentState = loadChecklistState();
+          if (isChecked) {
+            currentState[itemId] = true;
+            // Create confetti on check
+            const rect = newItem.getBoundingClientRect();
+            createConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 8);
+          } else {
+            delete currentState[itemId];
+          }
+          saveChecklistState(currentState);
+
+          // Update progress
+          updateChecklistProgress(wrapper);
+        });
+
+        // Keyboard accessibility
+        newItem.setAttribute('tabindex', '0');
+        newItem.setAttribute('role', 'checkbox');
+        newItem.setAttribute('aria-checked', newCheckbox.classList.contains('checked'));
+
+        newItem.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.target.click();
+          }
+        });
       });
 
-      // Keyboard accessibility
-      item.setAttribute('tabindex', '0');
-      item.setAttribute('role', 'checkbox');
-      item.setAttribute('aria-checked', checkbox.classList.contains('checked'));
-
-      item.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          item.click();
-        }
-      });
+      // Initial progress update
+      updateChecklistProgress(wrapper);
     });
   }
 
   // Run on page load
-  document.addEventListener('DOMContentLoaded', initChecklists);
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initChecklists, 1300);
+  });
 </script>
 
 </body>
